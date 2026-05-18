@@ -25,9 +25,9 @@ export default async function RevenuePage() {
     { data: proposalsRaw },
     { data: leadsRaw },
   ] = await Promise.all([
-    supabaseAdmin.from('projects').select('*').order('created_at', { ascending: false }),
-    supabaseAdmin.from('proposals').select('*').order('created_at', { ascending: false }),
-    supabaseAdmin.from('cebs_leads').select('id, status, created_at, industry').order('created_at', { ascending: false }),
+    supabaseAdmin.from('projects').select('*').is('deleted_at', null).order('created_at', { ascending: false }),
+    supabaseAdmin.from('proposals').select('*').is('deleted_at', null).order('created_at', { ascending: false }),
+    supabaseAdmin.from('cebs_leads').select('id, status, created_at, industry').is('deleted_at', null).order('created_at', { ascending: false }),
   ])
 
   const projects = (projectsRaw ?? []) as Project[]
