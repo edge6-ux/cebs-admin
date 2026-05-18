@@ -96,6 +96,7 @@ export default function ProposalForm({ lead, evaluation, services }: Props) {
   const [saving, setSaving] = useState(false)
   const [draftLoading, setDraftLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [draftError, setDraftError] = useState<string | null>(null)
   const [proposalMode, setProposalMode] = useState<'catalog' | 'custom'>(
     services.length > 0 ? 'catalog' : 'custom'
   )
@@ -153,23 +154,24 @@ export default function ProposalForm({ lead, evaluation, services }: Props) {
   async function draftProposal() {
     if (!tier) return
     setDraftLoading(true)
-    setError(null)
+    setDraftError(null)
     try {
       const res = await fetch('/api/admin/proposals/draft', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ leadId: lead.id, evaluationId: evaluation?.id || null, tier }),
       })
-      const data = await res.json()
+      let data: Record<string, unknown> = {}
+      try { data = await res.json() } catch { /* non-json body */ }
       if (!res.ok) {
-        setError(`Draft failed: ${data.error ?? res.status}`)
+        setDraftError(`Error ${res.status}: ${(data.error as string) ?? 'Unknown error'}`)
         return
       }
-      setScope(data.scope || '')
-      setIncludes(data.includes || [])
-      setExcludes(data.excludes || [])
+      setScope((data.scope as string) || '')
+      setIncludes((data.includes as string[]) || [])
+      setExcludes((data.excludes as string[]) || [])
     } catch (err) {
-      setError(`Draft failed: ${err instanceof Error ? err.message : 'Network error'}`)
+      setDraftError(`Network error: ${err instanceof Error ? err.message : String(err)}`)
     } finally {
       setDraftLoading(false)
     }
@@ -841,6 +843,12 @@ export default function ProposalForm({ lead, evaluation, services }: Props) {
                   </>
                 )}
               </button>
+
+              {draftError && (
+                <p className="font-body mt-2" style={{ color: '#E24B4A', fontSize: '13px' }}>
+                  {draftError}
+                </p>
+              )}
             </div>
           </div>
         </div>
