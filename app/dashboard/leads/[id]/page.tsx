@@ -1,9 +1,9 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ChevronLeft, Mail, Phone, Building2, DollarSign, ClipboardList, Plus } from 'lucide-react'
+import { ChevronLeft, Mail, Phone, Building2, DollarSign, ClipboardList, Plus, Info } from 'lucide-react'
 import { supabaseAdmin } from '@/lib/supabase-server'
 import { fmtDate, formatCurrency, priorityLabel, priorityColor } from '@/lib/utils'
-import type { Lead, Evaluation, Proposal, LeadStatus, AIAnalysis } from '@/lib/types'
+import type { Lead, Evaluation, Proposal, LeadStatus, AIAnalysis, Customer } from '@/lib/types'
 import RunAnalysisButton from '@/components/leads/RunAnalysisButton'
 import RerunAnalysisButton from '@/components/leads/RerunAnalysisButton'
 import LeadManagement from '@/components/leads/LeadManagement'
@@ -232,10 +232,12 @@ export default async function LeadDetailPage({
     { data: leadData },
     { data: evaluation },
     { data: proposalsRaw },
+    { data: customerData },
   ] = await Promise.all([
     supabaseAdmin.from('cebs_leads').select('*').eq('id', id).single(),
     supabaseAdmin.from('evaluations').select('*').eq('lead_id', id).maybeSingle(),
     supabaseAdmin.from('proposals').select('*').eq('lead_id', id).order('created_at', { ascending: false }),
+    supabaseAdmin.from('customers').select('*').eq('lead_id', id).maybeSingle(),
   ])
 
   if (!leadData) redirect('/dashboard/leads')
@@ -243,6 +245,7 @@ export default async function LeadDetailPage({
   const lead = leadData as Lead
   const eval_ = evaluation as Evaluation | null
   const proposals = (proposalsRaw ?? []) as Proposal[]
+  const customer = customerData as Customer | null
   const status = statusConfig[lead.status] ?? statusConfig.new
 
   return (
@@ -541,6 +544,71 @@ export default async function LeadDetailPage({
 
         {/* Right column */}
         <div>
+          {/* Customer Account card */}
+          <div className="bg-white rounded-2xl p-5 mb-4 shadow-sm" style={{ border: '1px solid #E5E7EB' }}>
+            <p
+              className="font-body uppercase pb-3 mb-4"
+              style={{ color: '#6B7280', fontSize: '11px', letterSpacing: '0.08em', borderBottom: '1px solid #F5F5F5' }}
+            >
+              Customer Account
+            </p>
+
+            {customer ? (
+              <>
+                <div className="flex gap-3 items-center mb-4">
+                  <div
+                    className="flex-shrink-0 flex items-center justify-center rounded-full"
+                    style={{ width: '40px', height: '40px', background: '#0D0D0D' }}
+                  >
+                    <span className="font-heading font-bold text-white" style={{ fontSize: '14px' }}>
+                      {getInitials(customer.contact_name || customer.business_name)}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-body font-semibold" style={{ color: '#0D0D0D', fontSize: '14px' }}>
+                      {customer.business_name}
+                    </p>
+                    <p className="font-body mt-0.5" style={{ color: '#6B7280', fontSize: '12px' }}>
+                      {customer.email}
+                    </p>
+                  </div>
+                </div>
+
+                {(() => {
+                  const badgeMap: Record<string, { bg: string; color: string }> = {
+                    active:   { bg: '#D1FAE5', color: '#065F46' },
+                    inactive: { bg: '#F3F4F6', color: '#6B7280' },
+                    churned:  { bg: '#FCEBEB', color: '#991B1B' },
+                  }
+                  const badge = badgeMap[customer.status] ?? badgeMap.inactive
+                  return (
+                    <span
+                      className="inline-block font-body font-semibold px-2 py-0.5 rounded-full mb-4 capitalize"
+                      style={{ fontSize: '12px', background: badge.bg, color: badge.color }}
+                    >
+                      {customer.status}
+                    </span>
+                  )
+                })()}
+
+                <Link
+                  href={`/dashboard/customers/${customer.id}`}
+                  className="font-body font-medium transition-opacity hover:opacity-70"
+                  style={{ color: '#8B2FC9', fontSize: '13px' }}
+                >
+                  View Customer →
+                </Link>
+              </>
+            ) : (
+              <div className="flex gap-2 items-center">
+                <Info size={14} style={{ color: '#6B7280', flexShrink: 0 }} />
+                <p className="font-body" style={{ color: '#6B7280', fontSize: '13px' }}>
+                  No customer account yet. Created automatically on next submission.
+                </p>
+              </div>
+            )}
+          </div>
+
           <LeadManagement lead={lead} />
           <LeadActions lead={lead} />
           <LeadTimeline lead={lead} />

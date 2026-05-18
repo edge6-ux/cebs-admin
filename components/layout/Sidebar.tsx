@@ -10,6 +10,7 @@ import {
   Settings,
   LogOut,
   Target,
+  Building2,
 } from 'lucide-react'
 
 type NavItem = {
@@ -21,6 +22,7 @@ type NavItem = {
 const mainNav: NavItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
   { icon: Users2,          label: 'Leads',     href: '/dashboard/leads' },
+  { icon: Building2,       label: 'Customers', href: '/dashboard/customers' },
   { icon: Briefcase,       label: 'Projects',  href: '/dashboard/projects' },
 ]
 

@@ -4,12 +4,13 @@ import { usePathname } from 'next/navigation'
 import { Menu } from 'lucide-react'
 
 const pageTitles: Record<string, string> = {
-  '/dashboard':          'Dashboard',
-  '/dashboard/leads':    'Leads',
-  '/dashboard/projects': 'Projects',
-  '/dashboard/proposals':'Proposals',
-  '/dashboard/revenue':  'Revenue',
-  '/dashboard/settings': 'Settings',
+  '/dashboard':            'Dashboard',
+  '/dashboard/leads':      'Leads',
+  '/dashboard/customers':  'Customers',
+  '/dashboard/projects':   'Projects',
+  '/dashboard/proposals':  'Proposals',
+  '/dashboard/revenue':    'Revenue',
+  '/dashboard/settings':   'Settings',
 }
 
 function getTitle(pathname: string): string {

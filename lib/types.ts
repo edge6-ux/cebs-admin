@@ -108,3 +108,22 @@ export type ChecklistItem = {
   label: string
   completed: boolean
 }
+
+export type CustomerStatus = 'active' | 'inactive' | 'churned'
+
+export type Customer = {
+  id: string
+  created_at: string
+  updated_at: string
+  lead_id: string | null
+  business_name: string
+  contact_name: string
+  email: string
+  phone: string
+  industry: string
+  website: string
+  notes: string
+  on_retainer: boolean
+  retainer_amount: number
+  status: CustomerStatus
+}
