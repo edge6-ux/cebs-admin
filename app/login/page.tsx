@@ -35,11 +35,11 @@ export default function LoginPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <Image
-            src="/images/complogo1.png"
+            src="/images/cebs-logo.png"
             alt="Competitive Edge Business Solutions"
-            width={96}
-            height={96}
-            className="mx-auto"
+            width={160}
+            height={64}
+            className="mx-auto object-contain"
             priority
           />
           <p className="font-heading font-bold mt-4" style={{ color: '#0D0D0D', fontSize: '22px' }}>
