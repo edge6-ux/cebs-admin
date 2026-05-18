@@ -28,6 +28,16 @@ export async function DELETE(
 ) {
   const { id } = await params
 
+  const { data: project, error: fetchError } = await supabaseAdmin
+    .from('projects')
+    .select('lead_id, monthly_retainer')
+    .eq('id', id)
+    .single()
+
+  if (fetchError || !project) {
+    return NextResponse.json({ error: fetchError?.message ?? 'Not found' }, { status: 404 })
+  }
+
   const { error } = await supabaseAdmin
     .from('projects')
     .update({ deleted_at: new Date().toISOString() })
@@ -35,6 +45,13 @@ export async function DELETE(
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  if (project.monthly_retainer > 0 && project.lead_id) {
+    await supabaseAdmin
+      .from('customers')
+      .update({ on_retainer: false, retainer_amount: 0 })
+      .eq('lead_id', project.lead_id)
   }
 
   return NextResponse.json({ success: true })
