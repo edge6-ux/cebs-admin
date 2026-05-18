@@ -75,8 +75,9 @@ Return JSON only:
     }
 
     const aiData = await response.json()
-    const text = (aiData.content[0] as { text: string }).text
-    const parsed = JSON.parse(text)
+    const raw = (aiData.content[0] as { text: string }).text
+    const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
+    const parsed = JSON.parse(cleaned)
 
     return NextResponse.json(parsed)
   } catch (err) {
