@@ -2,20 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
 import type { JobType } from '@/lib/types'
 
-type ProposalWithLead = {
+type ProposalRow = {
   id: string
+  lead_id: string | null
   tier: string
   scope: string
   investment_high: number
   monthly_retainer: number
   status: string
-  lead: {
-    id: string
-    full_name: string
-    email: string
-    phone: string
-    business_name: string
-  } | null
 }
 
 function deriveJobType(category: string): JobType {
@@ -27,8 +21,11 @@ function deriveJobType(category: string): JobType {
   return 'other'
 }
 
-async function handleProposalAccepted(proposal: ProposalWithLead) {
-  const lead = proposal.lead
+async function handleProposalAccepted(proposal: ProposalRow) {
+  // Fetch lead separately to avoid foreign key join issues
+  const { data: lead } = proposal.lead_id
+    ? await supabaseAdmin.from('cebs_leads').select('id, full_name, email, phone, business_name').eq('id', proposal.lead_id).maybeSingle()
+    : { data: null }
 
   // 1. Find customer + update retainer if applicable
   let customerId: string | null = null
@@ -143,10 +140,9 @@ export async function PATCH(
       ...(status === 'accepted' && !body.responded_at
         ? { responded_at: new Date().toISOString() }
         : {}),
-      updated_at: new Date().toISOString(),
     })
     .eq('id', id)
-    .select('*, lead:cebs_leads(*)')
+    .select('*')
     .single()
 
   if (error || !proposal) {
@@ -155,7 +151,7 @@ export async function PATCH(
 
   if (status === 'accepted') {
     try {
-      await handleProposalAccepted(proposal as ProposalWithLead)
+      await handleProposalAccepted(proposal as ProposalRow)
     } catch (err) {
       console.error('Auto-creation failed:', err)
     }
