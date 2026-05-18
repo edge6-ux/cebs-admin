@@ -26,6 +26,14 @@ export type Lead = {
   last_activity_at: string
 }
 
+export type UpsellOpportunity = {
+  service_name: string
+  trigger: string
+  question_to_ask: string
+  why: string
+  estimated_value: string
+}
+
 export type AIAnalysis = {
   priority_score: number
   priority_reason: string
@@ -36,6 +44,8 @@ export type AIAnalysis = {
   key_opportunities: string[]
   talking_points: string[]
   red_flags: string[]
+  recommended_services: string[]
+  upsell_opportunities: UpsellOpportunity[]
   draft_audit_summary: string
 }
 

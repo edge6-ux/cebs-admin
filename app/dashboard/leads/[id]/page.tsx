@@ -196,6 +196,64 @@ function AIAnalysisCard({ lead }: { lead: Lead }) {
             </div>
           )}
 
+          {/* Recommended services */}
+          {ai.recommended_services && ai.recommended_services.length > 0 && (
+            <div className="mb-5">
+              <p className="font-body font-medium mb-2" style={{ color: '#6B7280', fontSize: '12px' }}>
+                Recommended Services
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {ai.recommended_services.map((svc) => (
+                  <span
+                    key={svc}
+                    className="font-body font-semibold px-3 py-1 rounded-full"
+                    style={{
+                      fontSize: '12px',
+                      background: 'rgba(139,47,201,0.08)',
+                      color: '#8B2FC9',
+                      border: '1px solid rgba(139,47,201,0.2)',
+                    }}
+                  >
+                    {svc}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Upsell opportunities */}
+          {ai.upsell_opportunities && ai.upsell_opportunities.length > 0 && (
+            <div className="mb-5">
+              <p className="font-body font-medium mb-3" style={{ color: '#6B7280', fontSize: '12px' }}>
+                Upsell Opportunities
+              </p>
+              <div className="space-y-3">
+                {ai.upsell_opportunities.map((opp, i) => (
+                  <div
+                    key={i}
+                    className="rounded-xl p-4"
+                    style={{ background: '#F9F9F9', border: '1px solid #F0F0F0' }}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <p className="font-body font-bold" style={{ color: '#0D0D0D', fontSize: '13px' }}>
+                        {opp.service_name}
+                      </p>
+                      <p className="font-body font-semibold flex-shrink-0 ml-3" style={{ color: '#8B2FC9', fontSize: '12px' }}>
+                        {opp.estimated_value}
+                      </p>
+                    </div>
+                    <p className="font-body font-medium mb-1" style={{ color: '#1D4ED8', fontSize: '13px' }}>
+                      Ask: {opp.question_to_ask}
+                    </p>
+                    <p className="font-body" style={{ color: '#6B7280', fontSize: '12px', lineHeight: '1.5' }}>
+                      {opp.why}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Draft audit summary */}
           <div>
             <p className="font-body font-medium mb-2" style={{ color: '#6B7280', fontSize: '12px' }}>
