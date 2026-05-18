@@ -4,22 +4,33 @@ import { useState } from 'react'
 
 export default function RerunAnalysisButton({ leadId }: { leadId: string }) {
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   async function handleRerun() {
     setLoading(true)
+    setError(null)
     try {
       const res = await fetch(`/api/admin/leads/${leadId}/analyze`, { method: 'POST' })
       if (res.ok) {
         window.location.reload()
       } else {
+        const body = await res.json().catch(() => ({}))
+        setError(body.error ?? 'Analysis failed.')
         setLoading(false)
       }
-    } catch {
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Analysis failed.')
       setLoading(false)
     }
   }
 
   return (
+    <div className="inline-flex flex-col items-end gap-1">
+    {error && (
+      <p className="font-body" style={{ color: '#E24B4A', fontSize: '12px' }}>
+        {error}
+      </p>
+    )}
     <button
       onClick={handleRerun}
       disabled={loading}
@@ -40,5 +51,6 @@ export default function RerunAnalysisButton({ leadId }: { leadId: string }) {
     >
       {loading ? 'Running...' : 'Re-run Analysis'}
     </button>
+    </div>
   )
 }

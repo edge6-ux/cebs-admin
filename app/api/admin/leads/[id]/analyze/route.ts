@@ -9,7 +9,7 @@ export async function POST(
   try {
     const { id } = await params
 
-    const [{ data: lead }, { data: services }] = await Promise.all([
+    const [{ data: lead }, { data: services, error: servicesError }] = await Promise.all([
       supabaseAdmin.from('cebs_leads').select('*').eq('id', id).single(),
       supabaseAdmin
         .from('services')
@@ -17,6 +17,10 @@ export async function POST(
         .eq('active', true)
         .order('category'),
     ])
+
+    if (servicesError) {
+      console.warn('Services table query failed (continuing without catalog):', servicesError.message)
+    }
 
     if (!lead) {
       return NextResponse.json({ error: 'Lead not found' }, { status: 404 })
@@ -117,7 +121,9 @@ How found us: ${lead.hear_about_us || 'Not provided'}`,
     }
 
     const data = await response.json()
-    const text: string = data.content[0].text
+    const raw: string = data.content[0].text
+    // Strip markdown code fences if Claude wrapped the JSON
+    const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
     const parsed: AIAnalysis = JSON.parse(text)
 
     await supabaseAdmin
@@ -133,6 +139,7 @@ How found us: ${lead.hear_about_us || 'Not provided'}`,
     return NextResponse.json({ success: true, analysis: parsed })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
+    console.error('AI analysis failed:', message)
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }

@@ -15,11 +15,12 @@ export default function RunAnalysisButton({ leadId }: { leadId: string }) {
       if (res.ok) {
         window.location.reload()
       } else {
-        setError('Analysis failed. Please try again.')
+        const body = await res.json().catch(() => ({}))
+        setError(body.error ?? 'Analysis failed. Please try again.')
         setLoading(false)
       }
-    } catch {
-      setError('Analysis failed. Please try again.')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Analysis failed. Please try again.')
       setLoading(false)
     }
   }
