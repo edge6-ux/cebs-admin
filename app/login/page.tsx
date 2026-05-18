@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import FluidBackground from '@/components/FluidBackground'
+import FloatingParticles from '@/components/FloatingParticles'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -30,8 +32,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#0D0D0D' }}>
-      <div className="max-w-sm w-full bg-white rounded-2xl p-8 shadow-xl">
+    <div className="relative min-h-screen overflow-hidden flex items-center justify-center px-4" style={{ background: '#0D0D0D' }}>
+      {/* Animated background */}
+      <FluidBackground />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/30 to-black/60 pointer-events-none" />
+      <FloatingParticles />
+      <div className="relative z-10 max-w-sm w-full bg-white rounded-2xl p-8 shadow-xl">
         {/* Header */}
         <div className="text-center mb-8">
           <Image
