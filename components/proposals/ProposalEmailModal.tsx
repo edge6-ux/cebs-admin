@@ -3,6 +3,31 @@
 import { useState, useEffect } from 'react'
 import { Send, RefreshCw, AlertCircle } from 'lucide-react'
 
+interface LineItem {
+  name: string
+  price: number
+  is_retainer: boolean
+}
+
+interface ProposalData {
+  tier: string
+  lineItems: LineItem[]
+  investmentLow: number
+  investmentHigh: number
+  monthlyRetainer: number
+  timelineWeeks: number | null
+  businessName: string
+}
+
+interface GeneratedEmail {
+  subject: string
+  intro: string
+  nextSteps: string
+  customerEmail: string
+  customerName: string
+  proposal: ProposalData
+}
+
 interface Props {
   proposalId: string
   customerEmail: string
@@ -31,11 +56,9 @@ export default function ProposalEmailModal({
   onSent,
 }: Props) {
   const [generating, setGenerating] = useState(true)
-  const [subject, setSubject] = useState('')
-  const [body, setBody] = useState('')
+  const [generated, setGenerated] = useState<GeneratedEmail | null>(null)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [generated, setGenerated] = useState(false)
 
   useEffect(() => {
     generateEmail()
@@ -45,15 +68,14 @@ export default function ProposalEmailModal({
   async function generateEmail() {
     setGenerating(true)
     setError(null)
+    setGenerated(null)
     try {
       const res = await fetch(`/api/admin/proposals/${proposalId}/email`, {
         method: 'POST',
       })
       if (!res.ok) throw new Error('Generation failed')
-      const data = await res.json() as { subject: string; body: string }
-      setSubject(data.subject || '')
-      setBody(data.body || '')
-      setGenerated(true)
+      const data = await res.json() as GeneratedEmail
+      setGenerated(data)
     } catch {
       setError('Failed to generate. Please try again.')
     } finally {
@@ -62,14 +84,21 @@ export default function ProposalEmailModal({
   }
 
   async function sendEmail() {
-    if (!subject || !body) return
+    if (!generated) return
     setSending(true)
     setError(null)
     try {
       const res = await fetch(`/api/admin/proposals/${proposalId}/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subject, body, customerEmail }),
+        body: JSON.stringify({
+          subject: generated.subject,
+          intro: generated.intro,
+          nextSteps: generated.nextSteps,
+          customerEmail: generated.customerEmail || customerEmail,
+          customerName: generated.customerName || customerName,
+          proposal: generated.proposal,
+        }),
       })
       if (!res.ok) throw new Error('Send failed')
       onSent()
@@ -134,12 +163,7 @@ export default function ProposalEmailModal({
             <div className="flex flex-col items-center justify-center py-16 gap-4">
               <div
                 className="rounded-full animate-spin"
-                style={{
-                  width: '28px',
-                  height: '28px',
-                  border: '3px solid #F3F4F6',
-                  borderTopColor: '#8B2FC9',
-                }}
+                style={{ width: '28px', height: '28px', border: '3px solid #F3F4F6', borderTopColor: '#8B2FC9' }}
               />
               <p className="font-body" style={{ color: '#6B7280', fontSize: '14px' }}>
                 Generating proposal email…
@@ -147,7 +171,7 @@ export default function ProposalEmailModal({
             </div>
           )}
 
-          {/* Error (not generating) */}
+          {/* Error (failed to generate) */}
           {error && !generating && !generated && (
             <div className="flex flex-col items-center py-8 gap-4">
               <AlertCircle size={32} style={{ color: '#E24B4A' }} />
@@ -174,42 +198,46 @@ export default function ProposalEmailModal({
                 </label>
                 <input
                   type="text"
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
+                  value={generated.subject}
+                  onChange={(e) => setGenerated({ ...generated, subject: e.target.value })}
                   style={inputStyle}
-                  onFocus={(e) => {
-                    e.currentTarget.style.boxShadow = '0 0 0 2px #8B2FC9'
-                    e.currentTarget.style.borderColor = '#8B2FC9'
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.boxShadow = 'none'
-                    e.currentTarget.style.borderColor = '#E5E7EB'
-                  }}
+                  onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 2px #8B2FC9'; e.currentTarget.style.borderColor = '#8B2FC9' }}
+                  onBlur={(e) => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = '#E5E7EB' }}
                 />
               </div>
 
-              {/* Body */}
+              {/* Intro */}
               <div>
                 <label className="block font-body font-medium mb-1.5" style={{ color: '#4A4A4A', fontSize: '13px' }}>
-                  Email Body
+                  Opening
                 </label>
                 <textarea
-                  rows={14}
-                  value={body}
-                  onChange={(e) => setBody(e.target.value)}
+                  rows={4}
+                  value={generated.intro}
+                  onChange={(e) => setGenerated({ ...generated, intro: e.target.value })}
                   className="resize-none"
                   style={{ ...inputStyle, lineHeight: '1.7', padding: '12px 16px' }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.boxShadow = '0 0 0 2px #8B2FC9'
-                    e.currentTarget.style.borderColor = '#8B2FC9'
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.boxShadow = 'none'
-                    e.currentTarget.style.borderColor = '#E5E7EB'
-                  }}
+                  onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 2px #8B2FC9'; e.currentTarget.style.borderColor = '#8B2FC9' }}
+                  onBlur={(e) => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = '#E5E7EB' }}
+                />
+              </div>
+
+              {/* Next Steps */}
+              <div>
+                <label className="block font-body font-medium mb-1.5" style={{ color: '#4A4A4A', fontSize: '13px' }}>
+                  Next Steps
+                </label>
+                <textarea
+                  rows={3}
+                  value={generated.nextSteps}
+                  onChange={(e) => setGenerated({ ...generated, nextSteps: e.target.value })}
+                  className="resize-none"
+                  style={{ ...inputStyle, lineHeight: '1.7', padding: '12px 16px' }}
+                  onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 2px #8B2FC9'; e.currentTarget.style.borderColor = '#8B2FC9' }}
+                  onBlur={(e) => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = '#E5E7EB' }}
                 />
                 <p className="font-body mt-1.5" style={{ color: '#9CA3AF', fontSize: '12px' }}>
-                  Review and edit before sending.
+                  Line items, pricing, and branding are added automatically by the template.
                 </p>
               </div>
 
