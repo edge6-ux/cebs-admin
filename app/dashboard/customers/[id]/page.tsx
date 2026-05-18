@@ -84,12 +84,14 @@ export default async function CustomerDetailPage({
       .from('jobs')
       .select('*')
       .eq('customer_id', id)
+      .is('deleted_at', null)
       .order('created_at', { ascending: false }),
     customer.lead_id
       ? supabaseAdmin
           .from('proposals')
           .select('*')
           .eq('lead_id', customer.lead_id)
+          .is('deleted_at', null)
           .order('created_at', { ascending: false })
       : Promise.resolve({ data: [] }),
     customer.lead_id

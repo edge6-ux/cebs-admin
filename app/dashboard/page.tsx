@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { supabaseAdmin } from '@/lib/supabase-server'
 import { fmtDate, timeAgo, formatCurrency, priorityLabel, priorityColor } from '@/lib/utils'
 import type { Lead, Project, LeadStatus } from '@/lib/types'
-import { Users, Activity, CheckCircle, TrendingUp, Users as UsersIcon } from 'lucide-react'
+import { Users, Activity, CheckCircle, TrendingUp, Users as UsersIcon, RefreshCw } from 'lucide-react'
 import DynamicGreeting from '@/components/layout/DynamicGreeting'
 
 function getInitials(fullName: string): string {
@@ -12,25 +12,25 @@ function getInitials(fullName: string): string {
 }
 
 const statusConfig: Record<LeadStatus, { label: string; bg: string; color: string }> = {
-  new: { label: 'New', bg: '#EDE9FE', color: '#6D28D9' },
-  reviewed: { label: 'Reviewed', bg: '#DBEAFE', color: '#1D4ED8' },
+  new:       { label: 'New',       bg: '#EDE9FE', color: '#6D28D9' },
+  reviewed:  { label: 'Reviewed',  bg: '#DBEAFE', color: '#1D4ED8' },
   contacted: { label: 'Contacted', bg: '#FEF3C7', color: '#92400E' },
   converted: { label: 'Converted', bg: '#D1FAE5', color: '#065F46' },
   not_a_fit: { label: 'Not a Fit', bg: '#F3F4F6', color: '#6B7280' },
 }
 
 const tierConfig: Record<string, { bg: string; color: string }> = {
-  audit: { bg: '#EDE9FE', color: '#6D28D9' },
+  audit:    { bg: '#EDE9FE', color: '#6D28D9' },
   optimize: { bg: '#DBEAFE', color: '#1D4ED8' },
-  build: { bg: 'rgba(139,47,201,0.1)', color: '#8B2FC9' },
+  build:    { bg: 'rgba(139,47,201,0.1)', color: '#8B2FC9' },
 }
 
 const projectStatusConfig: Record<string, { label: string; bg: string; color: string }> = {
-  kickoff: { label: 'Kickoff', bg: '#FEF3C7', color: '#92400E' },
+  kickoff:     { label: 'Kickoff',     bg: '#FEF3C7', color: '#92400E' },
   in_progress: { label: 'In Progress', bg: '#DBEAFE', color: '#1D4ED8' },
-  review: { label: 'Review', bg: '#EDE9FE', color: '#6D28D9' },
-  complete: { label: 'Complete', bg: '#D1FAE5', color: '#065F46' },
-  on_hold: { label: 'On Hold', bg: '#F3F4F6', color: '#6B7280' },
+  review:      { label: 'Review',      bg: '#EDE9FE', color: '#6D28D9' },
+  complete:    { label: 'Complete',    bg: '#D1FAE5', color: '#065F46' },
+  on_hold:     { label: 'On Hold',     bg: '#F3F4F6', color: '#6B7280' },
 }
 
 function priorityBg(score: number): string {
@@ -52,24 +52,32 @@ export default async function Dashboard() {
     { data: activeProjectsRaw },
     { data: proposalsRaw },
     { data: projectsRevenueRaw },
+    { data: retainerCustomersRaw },
   ] = await Promise.all([
     supabaseAdmin.from('cebs_leads').select('*', { count: 'exact', head: true }),
     supabaseAdmin.from('cebs_leads').select('*', { count: 'exact', head: true }).gte('created_at', firstOfMonth),
     supabaseAdmin.from('cebs_leads').select('*', { count: 'exact', head: true }).in('status', ['new', 'reviewed', 'contacted']),
     supabaseAdmin.from('cebs_leads').select('*', { count: 'exact', head: true }).eq('status', 'converted'),
     supabaseAdmin.from('cebs_leads').select('*').order('created_at', { ascending: false }).limit(5),
-    supabaseAdmin.from('projects').select('*').in('status', ['kickoff', 'in_progress', 'review']).order('created_at', { ascending: false }).limit(5),
-    supabaseAdmin.from('proposals').select('investment_high').in('status', ['draft', 'sent']),
-    supabaseAdmin.from('projects').select('contract_value'),
+    supabaseAdmin.from('projects').select('*').in('status', ['kickoff', 'in_progress', 'review']).is('deleted_at', null).order('created_at', { ascending: false }).limit(5),
+    supabaseAdmin.from('proposals').select('investment_high').in('status', ['draft', 'sent']).is('deleted_at', null),
+    supabaseAdmin.from('projects').select('contract_value').is('deleted_at', null),
+    supabaseAdmin.from('customers').select('retainer_amount').eq('on_retainer', true).is('deleted_at', null),
   ])
 
   const recentLeads = (recentLeadsRaw ?? []) as Lead[]
   const activeProjects = (activeProjectsRaw ?? []) as Project[]
+
   const pipelineValue = (proposalsRaw ?? []).reduce(
     (sum, p) => sum + ((p as { investment_high: number }).investment_high ?? 0), 0
   )
   const confirmedValue = (projectsRevenueRaw ?? []).reduce(
     (sum, p) => sum + ((p as { contract_value: number }).contract_value ?? 0), 0
+  )
+  const retainerClients = (retainerCustomersRaw ?? [])
+  const retainerCount = retainerClients.length
+  const totalMRR = retainerClients.reduce(
+    (sum, c) => sum + ((c as { retainer_amount: number }).retainer_amount ?? 0), 0
   )
   const conversionRate =
     totalLeads ? Math.round(((convertedLeads ?? 0) / totalLeads) * 100) : null
@@ -87,7 +95,7 @@ export default async function Dashboard() {
       </div>
 
       {/* Metric cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-5 md:grid-cols-3 gap-4 mb-8">
         {/* New This Month */}
         <div
           className="bg-white rounded-2xl p-5 shadow-sm"
@@ -175,6 +183,30 @@ export default async function Dashboard() {
             Open proposals
           </p>
         </div>
+
+        {/* Monthly Recurring — clickable */}
+        <Link
+          href="/dashboard/retainers"
+          className="bg-white rounded-2xl p-5 shadow-sm block transition-colors"
+          style={{ border: '1px solid #E5E7EB' }}
+          onMouseEnter={undefined}
+        >
+          <div
+            className="flex items-center justify-center rounded-xl"
+            style={{ width: '40px', height: '40px', background: 'rgba(139,47,201,0.08)' }}
+          >
+            <RefreshCw size={18} style={{ color: '#8B2FC9' }} />
+          </div>
+          <p className="font-heading font-bold mt-3" style={{ color: '#0D0D0D', fontSize: '32px' }}>
+            {formatCurrency(totalMRR)}
+          </p>
+          <p className="font-body mt-1" style={{ color: '#6B7280', fontSize: '13px' }}>
+            Monthly Recurring
+          </p>
+          <p className="font-body mt-2" style={{ color: '#8B2FC9', fontSize: '12px' }}>
+            {retainerCount} client{retainerCount !== 1 ? 's' : ''} →
+          </p>
+        </Link>
       </div>
 
       {/* Two column layout */}
@@ -221,10 +253,7 @@ export default async function Dashboard() {
                       className="flex-shrink-0 flex items-center justify-center rounded-full"
                       style={{ width: '36px', height: '36px', background: '#0D0D0D' }}
                     >
-                      <span
-                        className="font-heading font-bold text-white"
-                        style={{ fontSize: '12px' }}
-                      >
+                      <span className="font-heading font-bold text-white" style={{ fontSize: '12px' }}>
                         {getInitials(lead.full_name)}
                       </span>
                     </div>
@@ -233,16 +262,10 @@ export default async function Dashboard() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between">
                         <div className="min-w-0 mr-2">
-                          <p
-                            className="font-body font-semibold truncate"
-                            style={{ color: '#0D0D0D', fontSize: '14px' }}
-                          >
+                          <p className="font-body font-semibold truncate" style={{ color: '#0D0D0D', fontSize: '14px' }}>
                             {lead.business_name}
                           </p>
-                          <p
-                            className="font-body mt-0.5"
-                            style={{ color: '#6B7280', fontSize: '12px' }}
-                          >
+                          <p className="font-body mt-0.5" style={{ color: '#6B7280', fontSize: '12px' }}>
                             {lead.full_name}
                           </p>
                         </div>
@@ -308,10 +331,7 @@ export default async function Dashboard() {
             </div>
 
             {activeProjects.length === 0 ? (
-              <p
-                className="font-body text-center py-6"
-                style={{ color: '#6B7280', fontSize: '13px' }}
-              >
+              <p className="font-body text-center py-6" style={{ color: '#6B7280', fontSize: '13px' }}>
                 No active projects
               </p>
             ) : (
@@ -321,10 +341,7 @@ export default async function Dashboard() {
                   const pStatus = projectStatusConfig[project.status] ?? projectStatusConfig.kickoff
                   return (
                     <div key={project.id} className="rounded-xl p-3" style={{ background: '#F9F9F9' }}>
-                      <p
-                        className="font-body font-semibold mb-1"
-                        style={{ color: '#0D0D0D', fontSize: '13px' }}
-                      >
+                      <p className="font-body font-semibold mb-1" style={{ color: '#0D0D0D', fontSize: '13px' }}>
                         {project.business_name}
                       </p>
                       <div className="flex gap-2 flex-wrap">
@@ -342,10 +359,7 @@ export default async function Dashboard() {
                         </span>
                       </div>
                       {project.target_date && (
-                        <p
-                          className="font-body mt-1"
-                          style={{ color: '#6B7280', fontSize: '11px' }}
-                        >
+                        <p className="font-body mt-1" style={{ color: '#6B7280', fontSize: '11px' }}>
                           Due {fmtDate(project.target_date)}
                         </p>
                       )}
@@ -377,10 +391,24 @@ export default async function Dashboard() {
 
               <div className="flex items-center justify-between">
                 <span className="font-body" style={{ color: '#6B7280', fontSize: '13px' }}>
-                  Confirmed
+                  Won (contract value)
                 </span>
                 <span className="font-heading font-bold" style={{ color: '#16A34A', fontSize: '16px' }}>
                   {formatCurrency(confirmedValue)}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Link
+                  href="/dashboard/retainers"
+                  className="font-body flex items-center gap-1 transition-opacity hover:opacity-70"
+                  style={{ color: '#6B7280', fontSize: '13px' }}
+                >
+                  <RefreshCw size={12} style={{ color: '#8B2FC9' }} />
+                  Monthly Recurring
+                </Link>
+                <span className="font-heading font-bold" style={{ color: '#8B2FC9', fontSize: '16px' }}>
+                  {formatCurrency(totalMRR)}<span className="font-body font-normal" style={{ fontSize: '12px', color: '#9CA3AF' }}>/mo</span>
                 </span>
               </div>
 
