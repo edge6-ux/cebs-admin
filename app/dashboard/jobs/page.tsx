@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Plus, Search, Hammer, Clock, CheckCircle, UserCircle } from 'lucide-react'
 import type { Job } from '@/lib/types'
 import { fmtDate } from '@/lib/utils'
+import DeleteButton from '@/components/ui/DeleteButton'
 
 const statusDot: Record<string, string> = {
   queued:      '#9CA3AF',
@@ -318,18 +319,26 @@ export default function JobsPage() {
                                   </span>
                                 )}
 
-                                {job.assigned_to ? (
-                                  <div
-                                    className="flex items-center justify-center rounded-full flex-shrink-0"
-                                    style={{ width: '20px', height: '20px', background: '#0D0D0D' }}
-                                  >
-                                    <span style={{ color: 'white', fontSize: '9px', fontWeight: 700 }}>
-                                      {job.assigned_to[0]?.toUpperCase()}
-                                    </span>
-                                  </div>
-                                ) : (
-                                  <UserCircle size={20} style={{ color: '#D1D5DB' }} />
-                                )}
+                                <div className="flex items-center gap-1">
+                                  <DeleteButton
+                                    onConfirm={async () => {
+                                      const res = await fetch(`/api/admin/jobs/${job.id}`, { method: 'DELETE' })
+                                      if (res.ok) setJobs((prev) => prev.filter((j) => j.id !== job.id))
+                                    }}
+                                  />
+                                  {job.assigned_to ? (
+                                    <div
+                                      className="flex items-center justify-center rounded-full flex-shrink-0"
+                                      style={{ width: '20px', height: '20px', background: '#0D0D0D' }}
+                                    >
+                                      <span style={{ color: 'white', fontSize: '9px', fontWeight: 700 }}>
+                                        {job.assigned_to[0]?.toUpperCase()}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <UserCircle size={20} style={{ color: '#D1D5DB' }} />
+                                  )}
+                                </div>
                               </div>
                             </div>
                           )
@@ -396,6 +405,12 @@ export default function JobsPage() {
                           </p>
                         )}
                       </div>
+                      <DeleteButton
+                        onConfirm={async () => {
+                          const res = await fetch(`/api/admin/jobs/${job.id}`, { method: 'DELETE' })
+                          if (res.ok) setJobs((prev) => prev.filter((j) => j.id !== job.id))
+                        }}
+                      />
                     </div>
                   </div>
                 ))}

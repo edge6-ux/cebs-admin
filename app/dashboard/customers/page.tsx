@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Plus, Search, Building2, RefreshCw } from 'lucide-react'
 import type { Customer } from '@/lib/types'
 import { fmtDate, formatCurrency } from '@/lib/utils'
+import DeleteButton from '@/components/ui/DeleteButton'
 
 function getInitials(name: string): string {
   return name
@@ -264,13 +265,21 @@ export default function CustomersPage() {
                 </p>
 
                 {/* Action */}
-                <button
-                  onClick={(e) => { e.stopPropagation(); router.push(`/dashboard/customers/${c.id}`) }}
-                  className="font-body rounded-lg px-3 py-1.5 transition-colors hover:bg-gray-50"
-                  style={{ border: '1px solid #E5E7EB', fontSize: '12px', color: '#4A4A4A' }}
-                >
-                  View
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); router.push(`/dashboard/customers/${c.id}`) }}
+                    className="font-body rounded-lg px-3 py-1.5 transition-colors hover:bg-gray-50"
+                    style={{ border: '1px solid #E5E7EB', fontSize: '12px', color: '#4A4A4A' }}
+                  >
+                    View
+                  </button>
+                  <DeleteButton
+                    onConfirm={async () => {
+                      const res = await fetch(`/api/admin/customers/${c.id}`, { method: 'DELETE' })
+                      if (res.ok) setCustomers((prev) => prev.filter((x) => x.id !== c.id))
+                    }}
+                  />
+                </div>
               </div>
             )
           })}
@@ -330,9 +339,17 @@ export default function CustomersPage() {
                   <p className="font-body" style={{ color: '#6B7280', fontSize: '12px' }}>
                     {fmtDate(c.created_at)}
                   </p>
-                  <p className="font-body font-medium" style={{ color: '#8B2FC9', fontSize: '12px' }}>
-                    View →
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-body font-medium" style={{ color: '#8B2FC9', fontSize: '12px' }}>
+                      View →
+                    </p>
+                    <DeleteButton
+                      onConfirm={async () => {
+                        const res = await fetch(`/api/admin/customers/${c.id}`, { method: 'DELETE' })
+                        if (res.ok) setCustomers((prev) => prev.filter((x) => x.id !== c.id))
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             )

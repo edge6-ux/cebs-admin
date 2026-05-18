@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import type { Project } from '@/lib/types'
 import { fmtDate, timeAgo, formatCurrency } from '@/lib/utils'
+import DeleteButton from '@/components/ui/DeleteButton'
 
 type ProjectStatus = Project['status']
 
@@ -309,21 +310,29 @@ export default function ProjectsPage() {
                     <span className="font-body" style={{ color: '#6B7280', fontSize: '12px' }}>
                       Created {timeAgo(project.created_at)}
                     </span>
-                    <button
-                      onClick={() => router.push(`/dashboard/projects/${project.id}`)}
-                      className="font-body rounded-lg px-3 py-1.5 transition-colors"
-                      style={{ border: '1px solid #E5E7EB', fontSize: '12px', color: '#4A4A4A', background: 'white', cursor: 'pointer' }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = '#8B2FC9'
-                        e.currentTarget.style.color = '#8B2FC9'
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = '#E5E7EB'
-                        e.currentTarget.style.color = '#4A4A4A'
-                      }}
-                    >
-                      View
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <DeleteButton
+                        onConfirm={async () => {
+                          const res = await fetch(`/api/admin/projects/${project.id}`, { method: 'DELETE' })
+                          if (res.ok) setProjects((prev) => prev.filter((p) => p.id !== project.id))
+                        }}
+                      />
+                      <button
+                        onClick={() => router.push(`/dashboard/projects/${project.id}`)}
+                        className="font-body rounded-lg px-3 py-1.5 transition-colors"
+                        style={{ border: '1px solid #E5E7EB', fontSize: '12px', color: '#4A4A4A', background: 'white', cursor: 'pointer' }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = '#8B2FC9'
+                          e.currentTarget.style.color = '#8B2FC9'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = '#E5E7EB'
+                          e.currentTarget.style.color = '#4A4A4A'
+                        }}
+                      >
+                        View
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

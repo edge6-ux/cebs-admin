@@ -13,6 +13,7 @@ export async function GET() {
         email
       )
     `)
+    .is('deleted_at', null)
     .order('created_at', { ascending: false })
 
   return NextResponse.json(data ?? [])

@@ -295,7 +295,7 @@ export default async function LeadDetailPage({
   ] = await Promise.all([
     supabaseAdmin.from('cebs_leads').select('*').eq('id', id).single(),
     supabaseAdmin.from('evaluations').select('*').eq('lead_id', id).maybeSingle(),
-    supabaseAdmin.from('proposals').select('*').eq('lead_id', id).order('created_at', { ascending: false }),
+    supabaseAdmin.from('proposals').select('*').eq('lead_id', id).is('deleted_at', null).order('created_at', { ascending: false }),
     supabaseAdmin.from('customers').select('*').eq('lead_id', id).maybeSingle(),
   ])
 

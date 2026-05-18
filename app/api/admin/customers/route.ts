@@ -5,6 +5,7 @@ export async function GET() {
   const { data } = await supabaseAdmin
     .from('customers')
     .select('*')
+    .is('deleted_at', null)
     .order('created_at', { ascending: false })
 
   return NextResponse.json(data ?? [])

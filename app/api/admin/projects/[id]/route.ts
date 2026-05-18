@@ -1,44 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params
-
-  const { data: customer, error } = await supabaseAdmin
-    .from('customers')
-    .select('*')
-    .eq('id', id)
-    .single()
-
-  if (error || !customer) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  }
-
-  const [{ data: jobs }, { data: proposals }] = await Promise.all([
-    supabaseAdmin
-      .from('jobs')
-      .select('*')
-      .eq('customer_id', id)
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false }),
-    supabaseAdmin
-      .from('proposals')
-      .select('*')
-      .eq('lead_id', customer.lead_id)
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false }),
-  ])
-
-  return NextResponse.json({
-    customer,
-    jobs: jobs ?? [],
-    proposals: proposals ?? [],
-  })
-}
-
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -47,7 +9,7 @@ export async function PATCH(
   const body = await req.json()
 
   const { data, error } = await supabaseAdmin
-    .from('customers')
+    .from('projects')
     .update({ ...body, updated_at: new Date().toISOString() })
     .eq('id', id)
     .select()
@@ -67,7 +29,7 @@ export async function DELETE(
   const { id } = await params
 
   const { error } = await supabaseAdmin
-    .from('customers')
+    .from('projects')
     .update({ deleted_at: new Date().toISOString() })
     .eq('id', id)
 
