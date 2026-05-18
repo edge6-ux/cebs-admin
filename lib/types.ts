@@ -109,6 +109,22 @@ export type ChecklistItem = {
   completed: boolean
 }
 
+export type JobStatus = 'queued' | 'in_progress' | 'review' | 'delivered' | 'on_hold'
+
+export type Job = {
+  id: string
+  created_at: string
+  updated_at: string
+  customer_id: string
+  title: string
+  type: string
+  status: JobStatus
+  due_date: string | null
+  completed_at: string | null
+  live_url: string
+  notes: string
+}
+
 export type CustomerStatus = 'active' | 'inactive' | 'churned'
 
 export type Customer = {
