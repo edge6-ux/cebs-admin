@@ -597,6 +597,8 @@ export default async function LeadDetailPage({
                         proposalId={proposal.id}
                         status={proposal.status}
                         leadId={id}
+                        customerEmail={lead.email}
+                        customerName={lead.full_name}
                       />
                     </div>
                   )
