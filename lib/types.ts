@@ -1,0 +1,110 @@
+export type LeadStatus =
+  | 'new'
+  | 'reviewed'
+  | 'contacted'
+  | 'converted'
+  | 'not_a_fit'
+
+export type Lead = {
+  id: string
+  created_at: string
+  full_name: string
+  business_name: string
+  email: string
+  phone: string
+  industry: string
+  challenge: string
+  monthly_spend: string
+  hear_about_us: string
+  status: LeadStatus
+  priority_score: number
+  assigned_to: string
+  notes: string
+  tier_recommendation: string
+  ai_analysis: AIAnalysis | null
+  contacted_at: string | null
+  last_activity_at: string
+}
+
+export type AIAnalysis = {
+  priority_score: number
+  priority_reason: string
+  tier_recommendation: 'audit' | 'optimize' | 'build'
+  tier_reasoning: string
+  estimated_monthly_waste: string
+  identified_tools: string[]
+  key_opportunities: string[]
+  talking_points: string[]
+  red_flags: string[]
+  draft_audit_summary: string
+}
+
+export type Evaluation = {
+  id: string
+  created_at: string
+  updated_at: string
+  lead_id: string
+  current_tools: Tool[]
+  monthly_spend_confirmed: number
+  pain_points: string
+  technical_comfort: string
+  timeline: string
+  budget_range: string
+  decision_maker: string
+  tier_fit: string
+  notes: string
+  ai_summary: string
+  ai_talking_points: string[]
+  completed_at: string | null
+}
+
+export type Tool = {
+  name: string
+  cost: number
+  category: string
+  keep: boolean
+}
+
+export type Proposal = {
+  id: string
+  created_at: string
+  lead_id: string
+  evaluation_id: string
+  tier: string
+  scope: string
+  investment_low: number
+  investment_high: number
+  monthly_retainer: number
+  timeline_weeks: number
+  includes: string[]
+  excludes: string[]
+  status: 'draft' | 'sent' | 'accepted' | 'declined'
+  sent_at: string | null
+  responded_at: string | null
+}
+
+export type Project = {
+  id: string
+  created_at: string
+  lead_id: string
+  proposal_id: string
+  client_name: string
+  client_email: string
+  client_phone: string
+  business_name: string
+  tier: string
+  status: 'kickoff' | 'in_progress' | 'review' | 'complete' | 'on_hold'
+  start_date: string | null
+  target_date: string | null
+  completed_date: string | null
+  contract_value: number
+  monthly_retainer: number
+  notes: string
+  checklist: ChecklistItem[]
+}
+
+export type ChecklistItem = {
+  id: string
+  label: string
+  completed: boolean
+}
