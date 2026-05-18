@@ -153,18 +153,23 @@ export default function ProposalForm({ lead, evaluation, services }: Props) {
   async function draftProposal() {
     if (!tier) return
     setDraftLoading(true)
+    setError(null)
     try {
       const res = await fetch('/api/admin/proposals/draft', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ leadId: lead.id, evaluationId: evaluation?.id || null, tier }),
       })
-      if (res.ok) {
-        const data = await res.json()
-        setScope(data.scope || '')
-        setIncludes(data.includes || [])
-        setExcludes(data.excludes || [])
+      const data = await res.json()
+      if (!res.ok) {
+        setError(`Draft failed: ${data.error ?? res.status}`)
+        return
       }
+      setScope(data.scope || '')
+      setIncludes(data.includes || [])
+      setExcludes(data.excludes || [])
+    } catch (err) {
+      setError(`Draft failed: ${err instanceof Error ? err.message : 'Network error'}`)
     } finally {
       setDraftLoading(false)
     }
