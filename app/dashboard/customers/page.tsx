@@ -249,12 +249,14 @@ export default function CustomersPage() {
                 )}
 
                 {/* Status */}
-                <span
-                  className="inline-block font-body font-semibold px-2 py-0.5 rounded-full capitalize"
-                  style={{ fontSize: '11px', background: badge.bg, color: badge.color }}
-                >
-                  {c.status}
-                </span>
+                <div>
+                  <span
+                    className="inline-block font-body font-semibold px-2 py-0.5 rounded-full capitalize"
+                    style={{ fontSize: '11px', background: badge.bg, color: badge.color }}
+                  >
+                    {c.status}
+                  </span>
+                </div>
 
                 {/* Since */}
                 <p className="font-body" style={{ color: '#6B7280', fontSize: '13px' }}>
