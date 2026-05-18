@@ -124,6 +124,30 @@ async function handleProposalAccepted(proposal: ProposalRow) {
   }
 }
 
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
+
+  const { data, error } = await supabaseAdmin
+    .from('proposals')
+    .select(`
+      *,
+      lead:cebs_leads(*),
+      evaluation:evaluations(*),
+      line_items:proposal_line_items(*, service:services(*))
+    `)
+    .eq('id', id)
+    .single()
+
+  if (error || !data) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+  return NextResponse.json(data)
+}
+
 export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }

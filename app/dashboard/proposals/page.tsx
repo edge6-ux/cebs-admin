@@ -88,8 +88,8 @@ export default function ProposalsPage() {
     declined: proposals.filter((p) => p.status === 'declined').length,
   }), [proposals])
 
-  function goToLead(leadId: string) {
-    router.push(`/dashboard/leads/${leadId}`)
+  function goToProposal(proposalId: string) {
+    router.push(`/dashboard/proposals/${proposalId}`)
   }
 
   return (
@@ -252,7 +252,7 @@ export default function ProposalsPage() {
                     alignItems: 'center',
                     borderBottom: i < filtered.length - 1 ? '1px solid #F5F5F5' : undefined,
                   }}
-                  onClick={() => goToLead(p.lead_id)}
+                  onClick={() => goToProposal(p.id)}
                 >
                   {/* Business */}
                   <div>
@@ -338,7 +338,7 @@ export default function ProposalsPage() {
                   {/* Action */}
                   <div onClick={(e) => e.stopPropagation()}>
                     <button
-                      onClick={() => goToLead(p.lead_id)}
+                      onClick={() => goToProposal(p.id)}
                       className="font-body rounded-lg px-3 py-1.5 transition-colors hover:bg-gray-50"
                       style={{ border: '1px solid #E5E7EB', fontSize: '12px', color: '#4A4A4A', background: 'white', cursor: 'pointer' }}
                     >
@@ -360,7 +360,7 @@ export default function ProposalsPage() {
                   key={p.id}
                   className="bg-white rounded-2xl p-4 shadow-sm cursor-pointer"
                   style={{ border: '1px solid #E5E7EB' }}
-                  onClick={() => goToLead(p.lead_id)}
+                  onClick={() => goToProposal(p.id)}
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div>
