@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Search } from 'lucide-react'
+import { Plus, Search, Hammer, Clock, CheckCircle, UserCircle } from 'lucide-react'
 import type { Job } from '@/lib/types'
+import { fmtDate } from '@/lib/utils'
 
 const statusDot: Record<string, string> = {
   queued:      '#9CA3AF',
@@ -13,21 +14,36 @@ const statusDot: Record<string, string> = {
   on_hold:     '#C8922A',
 }
 
-const statusLabel: Record<string, string> = {
-  queued:      'Queued',
-  in_progress: 'In Progress',
-  review:      'In Review',
-  delivered:   'Delivered',
-  on_hold:     'On Hold',
+const columns = [
+  { status: 'queued',      label: 'Queued',      color: '#6B7280', bg: '#F3F4F6' },
+  { status: 'in_progress', label: 'In Progress', color: '#1D4ED8', bg: '#DBEAFE' },
+  { status: 'review',      label: 'In Review',   color: '#6D28D9', bg: '#EDE9FE' },
+  { status: 'on_hold',     label: 'On Hold',     color: '#C8922A', bg: '#FEF3C7' },
+]
+
+const typeBadge: Record<string, { bg: string; color: string; label: string }> = {
+  website:       { bg: '#DBEAFE',              color: '#1D4ED8', label: 'Website' },
+  optimization:  { bg: '#D1FAE5',              color: '#065F46', label: 'Optimization' },
+  custom_build:  { bg: '#EDE9FE',              color: '#6D28D9', label: 'Custom Build' },
+  retainer:      { bg: 'rgba(139,47,201,0.1)', color: '#8B2FC9', label: 'Retainer' },
+  other:         { bg: '#F3F4F6',              color: '#6B7280', label: 'Other' },
 }
+
+const stats = [
+  { key: 'queued',      label: 'Queued' },
+  { key: 'in_progress', label: 'In Progress' },
+  { key: 'review',      label: 'In Review' },
+  { key: 'delivered',   label: 'Delivered' },
+  { key: 'on_hold',     label: 'On Hold' },
+]
 
 export default function JobsPage() {
   const router = useRouter()
-  const [jobs, setJobs]               = useState<Job[]>([])
-  const [loading, setLoading]         = useState(true)
-  const [search, setSearch]           = useState('')
+  const [jobs, setJobs]                 = useState<Job[]>([])
+  const [loading, setLoading]           = useState(true)
+  const [search, setSearch]             = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [typeFilter, setTypeFilter]   = useState('all')
+  const [typeFilter, setTypeFilter]     = useState('all')
 
   useEffect(() => {
     fetch('/api/admin/jobs')
@@ -45,19 +61,14 @@ export default function JobsPage() {
     const matchesSearch =
       !search ||
       j.title.toLowerCase().includes(q) ||
-      (j.customer?.business_name ?? '').toLowerCase().includes(q)
+      j.customer?.business_name?.toLowerCase().includes(q)
     const matchesStatus = statusFilter === 'all' || j.status === statusFilter
     const matchesType   = typeFilter === 'all'   || j.type === typeFilter
     return matchesSearch && matchesStatus && matchesType
   })
 
-  const stats = [
-    { key: 'queued',      label: 'Queued' },
-    { key: 'in_progress', label: 'In Progress' },
-    { key: 'review',      label: 'In Review' },
-    { key: 'delivered',   label: 'Delivered' },
-    { key: 'on_hold',     label: 'On Hold' },
-  ]
+  const activeJobs    = filtered.filter((j) => j.status !== 'delivered')
+  const deliveredJobs = filtered.filter((j) => j.status === 'delivered')
 
   return (
     <div>
@@ -147,29 +158,31 @@ export default function JobsPage() {
         </select>
       </div>
 
-      {/* PIPELINE + DELIVERED — 15B */}
+      {/* Loading skeleton — 4 pipeline columns */}
       {loading && (
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden" style={{ border: '1px solid #E5E7EB' }}>
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="flex gap-4 px-5 py-4 animate-pulse" style={{ borderBottom: '1px solid #F5F5F5' }}>
-              <div className="flex-1 space-y-2">
-                <div className="h-3 bg-gray-200 rounded w-1/3" />
-                <div className="h-3 bg-gray-200 rounded w-1/4" />
-              </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i}>
+              <div className="h-6 w-24 rounded animate-pulse mb-3" style={{ background: '#F3F4F6' }} />
+              <div className="h-32 rounded-2xl animate-pulse mb-3" style={{ background: '#F3F4F6' }} />
+              <div className="h-32 rounded-2xl animate-pulse" style={{ background: '#F3F4F6' }} />
             </div>
           ))}
         </div>
       )}
 
+      {/* No jobs at all */}
       {!loading && jobs.length === 0 && (
-        <div className="bg-white rounded-2xl p-12 text-center shadow-sm" style={{ border: '1px solid #E5E7EB' }}>
-          <p className="font-body" style={{ color: '#6B7280', fontSize: '15px' }}>No jobs yet</p>
-          <p className="font-body mt-1" style={{ color: '#9CA3AF', fontSize: '13px' }}>
-            Create your first job to get started.
+        <div className="bg-white rounded-2xl p-12 text-center shadow-sm mb-6" style={{ border: '1px solid #E5E7EB' }}>
+          <Hammer size={40} style={{ color: '#9CA3AF', margin: '0 auto' }} />
+          <p className="font-body mt-3" style={{ color: '#6B7280', fontSize: '15px' }}>No active jobs</p>
+          <p className="font-body mt-1 mx-auto" style={{ color: '#9CA3AF', fontSize: '13px', maxWidth: '280px' }}>
+            Jobs are created automatically when a proposal is accepted.
           </p>
         </div>
       )}
 
+      {/* Filter empty state */}
       {!loading && jobs.length > 0 && filtered.length === 0 && (
         <div className="bg-white rounded-2xl p-12 text-center shadow-sm" style={{ border: '1px solid #E5E7EB' }}>
           <p className="font-body" style={{ color: '#6B7280', fontSize: '15px' }}>
@@ -185,10 +198,211 @@ export default function JobsPage() {
         </div>
       )}
 
+      {/* Pipeline */}
       {!loading && filtered.length > 0 && (
-        <div className="font-body text-sm" style={{ color: '#6B7280' }}>
-          {/* PIPELINE + DELIVERED — 15B */}
-        </div>
+        <>
+          {activeJobs.length === 0 ? (
+            <div className="bg-white rounded-2xl p-12 text-center shadow-sm mb-8" style={{ border: '1px solid #E5E7EB' }}>
+              <Hammer size={40} style={{ color: '#9CA3AF', margin: '0 auto' }} />
+              <p className="font-body mt-3" style={{ color: '#6B7280', fontSize: '15px' }}>No active jobs</p>
+              <p className="font-body mt-1 mx-auto" style={{ color: '#9CA3AF', fontSize: '13px', maxWidth: '280px' }}>
+                Jobs are created automatically when a proposal is accepted.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              {columns.map((col) => {
+                const colJobs = activeJobs.filter((j) => j.status === col.status)
+                return (
+                  <div key={col.status}>
+                    {/* Column header */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="rounded-full flex-shrink-0"
+                          style={{ width: '8px', height: '8px', background: col.color }}
+                        />
+                        <p
+                          className="font-body font-semibold uppercase"
+                          style={{ color: '#0D0D0D', fontSize: '12px', letterSpacing: '0.06em' }}
+                        >
+                          {col.label}
+                        </p>
+                      </div>
+                      <span
+                        className="font-body px-2 py-0.5 rounded-full"
+                        style={{ fontSize: '12px', color: '#6B7280', background: '#F3F4F6' }}
+                      >
+                        {colJobs.length}
+                      </span>
+                    </div>
+
+                    {/* Cards */}
+                    <div className="space-y-3">
+                      {colJobs.length === 0 ? (
+                        <div
+                          className="rounded-2xl p-4 text-center"
+                          style={{ border: '1.5px dashed #E5E7EB' }}
+                        >
+                          <p className="font-body" style={{ color: '#D1D5DB', fontSize: '12px' }}>
+                            No {col.label.toLowerCase()} jobs
+                          </p>
+                        </div>
+                      ) : (
+                        colJobs.map((job) => {
+                          const badge = typeBadge[job.type] ?? typeBadge.other
+                          const now = new Date()
+                          const due = job.due_date ? new Date(job.due_date) : null
+                          const isOverdue  = due ? due < now && job.status !== 'delivered' : false
+                          const isDueSoon  = due ? !isOverdue && due < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : false
+                          const clockColor = isOverdue ? '#E24B4A' : isDueSoon ? '#C8922A' : '#9CA3AF'
+
+                          return (
+                            <div
+                              key={job.id}
+                              onClick={() => router.push(`/dashboard/jobs/${job.id}`)}
+                              className="relative bg-white rounded-2xl p-4 shadow-sm cursor-pointer transition-all duration-150 hover:shadow-md"
+                              style={{ border: '1px solid #E5E7EB' }}
+                              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(139,47,201,0.3)' }}
+                              onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#E5E7EB' }}
+                            >
+                              {/* Priority dot */}
+                              {job.priority === 'urgent' && (
+                                <div
+                                  className="absolute rounded-full animate-pulse"
+                                  style={{ width: '8px', height: '8px', background: '#E24B4A', top: '12px', right: '12px' }}
+                                />
+                              )}
+                              {job.priority === 'high' && (
+                                <div
+                                  className="absolute rounded-full"
+                                  style={{ width: '8px', height: '8px', background: '#C8922A', top: '12px', right: '12px' }}
+                                />
+                              )}
+
+                              {/* Title */}
+                              <p
+                                className="font-body font-semibold mb-1 pr-4 line-clamp-2"
+                                style={{ color: '#0D0D0D', fontSize: '14px' }}
+                              >
+                                {job.title}
+                              </p>
+
+                              {/* Business */}
+                              <p className="font-body mb-3" style={{ color: '#6B7280', fontSize: '12px' }}>
+                                {job.customer?.business_name ?? 'No customer'}
+                              </p>
+
+                              {/* Type badge */}
+                              <div className="mb-3">
+                                <span
+                                  className="inline-flex font-body font-semibold px-2 py-0.5 rounded-full"
+                                  style={{ fontSize: '11px', background: badge.bg, color: badge.color }}
+                                >
+                                  {badge.label}
+                                </span>
+                              </div>
+
+                              {/* Bottom row */}
+                              <div className="flex items-center justify-between">
+                                {due ? (
+                                  <div className="flex items-center gap-1">
+                                    <Clock size={10} style={{ color: clockColor }} />
+                                    <span className="font-body" style={{ fontSize: '11px', color: clockColor }}>
+                                      {fmtDate(job.due_date!)}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span className="font-body" style={{ fontSize: '11px', color: '#D1D5DB' }}>
+                                    No due date
+                                  </span>
+                                )}
+
+                                {job.assigned_to ? (
+                                  <div
+                                    className="flex items-center justify-center rounded-full flex-shrink-0"
+                                    style={{ width: '20px', height: '20px', background: '#0D0D0D' }}
+                                  >
+                                    <span style={{ color: 'white', fontSize: '9px', fontWeight: 700 }}>
+                                      {job.assigned_to[0]?.toUpperCase()}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <UserCircle size={20} style={{ color: '#D1D5DB' }} />
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          {/* Delivered section */}
+          {deliveredJobs.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <CheckCircle size={18} style={{ color: '#16A34A' }} />
+                  <p className="font-heading font-bold" style={{ color: '#0D0D0D', fontSize: '17px' }}>
+                    Delivered
+                  </p>
+                </div>
+                <span className="font-body" style={{ color: '#6B7280', fontSize: '13px' }}>
+                  {deliveredJobs.length} job{deliveredJobs.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {deliveredJobs.map((job) => (
+                  <div
+                    key={job.id}
+                    onClick={() => router.push(`/dashboard/jobs/${job.id}`)}
+                    className="bg-white rounded-2xl p-4 shadow-sm cursor-pointer transition-opacity"
+                    style={{ border: '1px solid #E5E7EB', opacity: 0.8 }}
+                    onMouseEnter={(e) => { e.currentTarget.style.opacity = '1' }}
+                    onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.8' }}
+                  >
+                    <div className="flex gap-3 items-start">
+                      <CheckCircle size={18} style={{ color: '#16A34A', flexShrink: 0, marginTop: '2px' }} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="font-body font-semibold truncate" style={{ color: '#0D0D0D', fontSize: '14px' }}>
+                            {job.title}
+                          </p>
+                          {job.live_url && (
+                            <a
+                              href={job.live_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="font-body font-medium flex-shrink-0 transition-opacity hover:opacity-70"
+                              style={{ color: '#8B2FC9', fontSize: '12px' }}
+                            >
+                              Live →
+                            </a>
+                          )}
+                        </div>
+                        <p className="font-body mt-0.5" style={{ color: '#6B7280', fontSize: '12px' }}>
+                          {job.customer?.business_name ?? 'No customer'}
+                        </p>
+                        {job.completed_at && (
+                          <p className="font-body mt-1" style={{ color: '#9CA3AF', fontSize: '11px' }}>
+                            Delivered {fmtDate(job.completed_at)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   )
