@@ -121,18 +121,39 @@ export type ChecklistItem = {
 
 export type JobStatus = 'queued' | 'in_progress' | 'review' | 'delivered' | 'on_hold'
 
+export type JobType = 'website' | 'optimization' | 'custom_build' | 'retainer' | 'other'
+
+export type JobPriority = 'low' | 'medium' | 'high' | 'urgent'
+
 export type Job = {
   id: string
   created_at: string
   updated_at: string
-  customer_id: string
+  customer_id: string | null
+  project_id: string | null
+  proposal_id: string | null
   title: string
-  type: string
+  description: string
+  type: JobType
   status: JobStatus
+  priority: JobPriority
+  assigned_to: string
   due_date: string | null
   completed_at: string | null
   live_url: string
-  notes: string
+  repo_url: string
+  poc_name: string
+  poc_role: string
+  credentials: string
+  handoff_date: string | null
+  handoff_notes: string
+  internal_notes: string
+  customer?: {
+    id: string
+    business_name: string
+    contact_name: string
+    email: string
+  }
 }
 
 export type CustomerStatus = 'active' | 'inactive' | 'churned'

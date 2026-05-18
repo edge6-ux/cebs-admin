@@ -11,6 +11,7 @@ import {
   LogOut,
   Target,
   Building2,
+  Hammer,
 } from 'lucide-react'
 
 type NavItem = {
@@ -23,6 +24,7 @@ const mainNav: NavItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
   { icon: Users2,          label: 'Leads',     href: '/dashboard/leads' },
   { icon: Building2,       label: 'Customers', href: '/dashboard/customers' },
+  { icon: Hammer,          label: 'Jobs',      href: '/dashboard/jobs' },
   { icon: Briefcase,       label: 'Projects',  href: '/dashboard/projects' },
 ]
 
