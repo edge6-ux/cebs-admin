@@ -10,6 +10,7 @@ import LeadManagement from '@/components/leads/LeadManagement'
 import LeadActions from '@/components/leads/LeadActions'
 import LeadTimeline from '@/components/leads/LeadTimeline'
 import ProposalActions from '@/components/proposals/ProposalActions'
+import DeleteButton from '@/components/ui/DeleteButton'
 
 function getInitials(fullName: string): string {
   const parts = fullName.trim().split(' ')
@@ -678,6 +679,23 @@ export default async function LeadDetailPage({
           <LeadManagement lead={lead} />
           <LeadActions lead={lead} />
           <LeadTimeline lead={lead} />
+
+          {/* Delete lead */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm" style={{ border: '1px solid #E5E7EB' }}>
+            <p
+              className="font-body uppercase pb-3 mb-4"
+              style={{ color: '#6B7280', fontSize: '11px', letterSpacing: '0.08em', borderBottom: '1px solid #F5F5F5' }}
+            >
+              Danger Zone
+            </p>
+            <DeleteButton
+              onConfirm={async () => {
+                const res = await fetch(`/api/admin/leads/${id}`, { method: 'DELETE' })
+                if (res.ok) window.location.href = '/dashboard/leads'
+              }}
+              label="Delete Lead"
+            />
+          </div>
         </div>
       </div>
     </div>
