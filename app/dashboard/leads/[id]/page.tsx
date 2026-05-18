@@ -9,6 +9,7 @@ import RerunAnalysisButton from '@/components/leads/RerunAnalysisButton'
 import LeadManagement from '@/components/leads/LeadManagement'
 import LeadActions from '@/components/leads/LeadActions'
 import LeadTimeline from '@/components/leads/LeadTimeline'
+import ProposalActions from '@/components/proposals/ProposalActions'
 
 function getInitials(fullName: string): string {
   const parts = fullName.trim().split(' ')
@@ -592,6 +593,11 @@ export default async function LeadDetailPage({
                           Sent {fmtDate(proposal.sent_at)}
                         </p>
                       )}
+                      <ProposalActions
+                        proposalId={proposal.id}
+                        status={proposal.status}
+                        leadId={id}
+                      />
                     </div>
                   )
                 })}
