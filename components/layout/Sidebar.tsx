@@ -12,6 +12,7 @@ import {
   Target,
   Building2,
   Hammer,
+  Trash2,
 } from 'lucide-react'
 
 type NavItem = {
@@ -35,6 +36,7 @@ const managementNav: NavItem[] = [
 
 const systemNav: NavItem[] = [
   { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
+  { icon: Trash2,   label: 'Trash',    href: '/dashboard/trash' },
 ]
 
 interface SidebarProps {
