@@ -97,6 +97,7 @@ export default function ProposalForm({ lead, evaluation, services }: Props) {
   const [draftLoading, setDraftLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [draftError, setDraftError] = useState<string | null>(null)
+  const [draftSuccess, setDraftSuccess] = useState(false)
   const [proposalMode, setProposalMode] = useState<'catalog' | 'custom'>(
     services.length > 0 ? 'catalog' : 'custom'
   )
@@ -155,6 +156,7 @@ export default function ProposalForm({ lead, evaluation, services }: Props) {
     if (!tier) return
     setDraftLoading(true)
     setDraftError(null)
+    setDraftSuccess(false)
     try {
       const res = await fetch('/api/admin/proposals/draft', {
         method: 'POST',
@@ -170,6 +172,8 @@ export default function ProposalForm({ lead, evaluation, services }: Props) {
       setScope((data.scope as string) || '')
       setIncludes((data.includes as string[]) || [])
       setExcludes((data.excludes as string[]) || [])
+      setDraftSuccess(true)
+      document.getElementById('scope-field')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     } catch (err) {
       setDraftError(`Network error: ${err instanceof Error ? err.message : String(err)}`)
     } finally {
@@ -321,6 +325,7 @@ export default function ProposalForm({ lead, evaluation, services }: Props) {
               Scope of Work
             </label>
             <textarea
+              id="scope-field"
               rows={5}
               value={scope}
               onChange={(e) => setScope(e.target.value)}
@@ -847,6 +852,11 @@ export default function ProposalForm({ lead, evaluation, services }: Props) {
               {draftError && (
                 <p className="font-body mt-2" style={{ color: '#E24B4A', fontSize: '13px' }}>
                   {draftError}
+                </p>
+              )}
+              {draftSuccess && (
+                <p className="font-body mt-2" style={{ color: '#16A34A', fontSize: '13px' }}>
+                  ✓ Draft generated — scope and line items filled above.
                 </p>
               )}
             </div>
