@@ -20,17 +20,17 @@ type ProposalWithLead = {
 
 function deriveJobType(category: string): JobType {
   const c = category.toLowerCase()
-  if (c.includes('web'))                              return 'website'
-  if (c.includes('retainer'))                         return 'retainer'
-  if (c.includes('operations') || c.includes('optimiz')) return 'optimization'
-  if (c.includes('ai') || c.includes('build') || c.includes('custom')) return 'custom_build'
+  if (c.includes('web'))                                                    return 'website'
+  if (c.includes('retainer'))                                               return 'retainer'
+  if (c.includes('operations') || c.includes('optimiz'))                   return 'optimization'
+  if (c.includes('ai') || c.includes('build') || c.includes('custom'))     return 'custom_build'
   return 'other'
 }
 
 async function handleProposalAccepted(proposal: ProposalWithLead) {
   const lead = proposal.lead
 
-  // 1. Find or create customer + update retainer
+  // 1. Find customer + update retainer if applicable
   let customerId: string | null = null
 
   if (lead?.email) {
@@ -60,17 +60,17 @@ async function handleProposalAccepted(proposal: ProposalWithLead) {
   const { data: project } = await supabaseAdmin
     .from('projects')
     .insert({
-      lead_id:         lead?.id || null,
-      proposal_id:     proposal.id,
-      client_name:     lead?.full_name || '',
-      client_email:    lead?.email || '',
-      client_phone:    lead?.phone || '',
-      business_name:   lead?.business_name || '',
-      tier:            proposal.tier,
-      status:          'kickoff',
-      contract_value:  proposal.investment_high || 0,
+      lead_id:          lead?.id || null,
+      proposal_id:      proposal.id,
+      client_name:      lead?.full_name || '',
+      client_email:     lead?.email || '',
+      client_phone:     lead?.phone || '',
+      business_name:    lead?.business_name || '',
+      tier:             proposal.tier,
+      status:           'kickoff',
+      contract_value:   proposal.investment_high || 0,
       monthly_retainer: proposal.monthly_retainer || 0,
-      notes:           proposal.scope || '',
+      notes:            proposal.scope || '',
     })
     .select()
     .single()
@@ -84,7 +84,7 @@ async function handleProposalAccepted(proposal: ProposalWithLead) {
     .eq('proposal_id', proposal.id)
     .order('sort_order')
 
-  // 4. Create jobs
+  // 4. Create jobs from line items, or one job from proposal scope
   if (lineItems && lineItems.length > 0) {
     const jobsToCreate = lineItems.map((item) => ({
       customer_id:  customerId,
@@ -97,13 +97,11 @@ async function handleProposalAccepted(proposal: ProposalWithLead) {
       priority:     'medium',
       assigned_to:  '',
     }))
-
     await supabaseAdmin.from('jobs').insert(jobsToCreate)
   } else {
     const tierLabel = proposal.tier
       ? proposal.tier.charAt(0).toUpperCase() + proposal.tier.slice(1)
       : 'Project'
-
     await supabaseAdmin.from('jobs').insert({
       customer_id:  customerId,
       project_id:   project.id,
@@ -117,7 +115,7 @@ async function handleProposalAccepted(proposal: ProposalWithLead) {
     })
   }
 
-  // 5. Update lead status
+  // 5. Mark lead as converted
   if (lead?.id) {
     await supabaseAdmin
       .from('cebs_leads')

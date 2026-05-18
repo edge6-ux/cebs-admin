@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { ChevronLeft, Info } from 'lucide-react'
 import { supabaseAdmin } from '@/lib/supabase-server'
-import type { Lead, Evaluation } from '@/lib/types'
+import type { Lead, Evaluation, Service } from '@/lib/types'
 import { formatCurrency } from '@/lib/utils'
 import ProposalForm from '@/components/leads/ProposalForm'
 
@@ -13,15 +13,17 @@ export default async function NewProposalPage({
 }) {
   const { id } = await params
 
-  const [{ data: leadData }, { data: evaluation }] = await Promise.all([
+  const [{ data: leadData }, { data: evaluation }, { data: servicesData }] = await Promise.all([
     supabaseAdmin.from('cebs_leads').select('*').eq('id', id).single(),
     supabaseAdmin.from('evaluations').select('*').eq('lead_id', id).maybeSingle(),
+    supabaseAdmin.from('services').select('*').eq('active', true).order('category').order('name'),
   ])
 
   if (!leadData) redirect('/dashboard/leads')
 
   const lead = leadData as Lead
   const eval_ = evaluation as Evaluation | null
+  const services = (servicesData ?? []) as Service[]
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -110,7 +112,7 @@ export default async function NewProposalPage({
         )}
       </div>
 
-      <ProposalForm lead={lead} evaluation={eval_} />
+      <ProposalForm lead={lead} evaluation={eval_} services={services} />
     </div>
   )
 }

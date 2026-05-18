@@ -156,6 +156,30 @@ export type Job = {
   }
 }
 
+export type Service = {
+  id: string
+  created_at: string
+  name: string
+  description: string
+  category: string
+  price_low: number
+  price_high: number
+  is_retainer: boolean
+  retainer_price_low: number
+  retainer_price_high: number
+  active: boolean
+}
+
+export type LineItem = {
+  id?: string
+  service_id: string | null
+  name: string
+  description: string
+  price: number
+  is_retainer: boolean
+  sort_order: number
+}
+
 export type CustomerStatus = 'active' | 'inactive' | 'churned'
 
 export type Customer = {
