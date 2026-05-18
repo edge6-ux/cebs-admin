@@ -79,6 +79,7 @@ export default async function CustomerDetailPage({
     { data: jobsRaw },
     { data: proposalsRaw },
     { data: leadData },
+    { data: projectsRaw },
   ] = await Promise.all([
     supabaseAdmin
       .from('jobs')
@@ -101,6 +102,13 @@ export default async function CustomerDetailPage({
           .eq('id', customer.lead_id)
           .maybeSingle()
       : Promise.resolve({ data: null }),
+    customer.lead_id
+      ? supabaseAdmin
+          .from('projects')
+          .select('contract_value')
+          .eq('lead_id', customer.lead_id)
+          .is('deleted_at', null)
+      : Promise.resolve({ data: [] }),
   ])
 
   const jobs = (jobsRaw ?? []) as Job[]
@@ -108,9 +116,10 @@ export default async function CustomerDetailPage({
   const lead = leadData as Lead | null
 
   const activeJobs = jobs.filter((j) => j.status !== 'delivered' && j.status !== 'on_hold').length
-  const totalValue = proposals
-    .filter((p) => p.status === 'accepted')
-    .reduce((sum, p) => sum + p.investment_high, 0)
+  const totalValue = (projectsRaw ?? []).reduce(
+    (sum, p) => sum + ((p as { contract_value: number }).contract_value || 0),
+    0
+  )
 
   const cStatus = statusConfig[customer.status] ?? statusConfig.inactive
 

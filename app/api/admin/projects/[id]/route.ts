@@ -47,6 +47,11 @@ export async function DELETE(
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  await supabaseAdmin
+    .from('jobs')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('project_id', id)
+
   if (project.monthly_retainer > 0 && project.lead_id) {
     await supabaseAdmin
       .from('customers')
