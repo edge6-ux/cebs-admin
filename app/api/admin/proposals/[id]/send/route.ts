@@ -17,7 +17,7 @@ export async function POST(
 
   try {
     await resend.emails.send({
-      from: 'Competitive Edge <hello@cuttingedgebs.com>',
+      from: 'Competitive Edge <onboarding@resend.dev>',
       to: customerEmail,
       subject,
       text: body,
