@@ -294,15 +294,17 @@ export default function JobsPage() {
                                 {job.customer?.business_name ?? 'No customer'}
                               </p>
 
-                              {/* Type badge */}
-                              <div className="mb-3">
-                                <span
-                                  className="inline-flex font-body font-semibold px-2 py-0.5 rounded-full"
-                                  style={{ fontSize: '11px', background: badge.bg, color: badge.color }}
-                                >
-                                  {badge.label}
-                                </span>
-                              </div>
+                              {/* Type badge — only show if type is set and not generic */}
+                              {job.type && (
+                                <div className="mb-3">
+                                  <span
+                                    className="inline-flex font-body font-semibold px-2 py-0.5 rounded-full"
+                                    style={{ fontSize: '11px', background: badge.bg, color: badge.color }}
+                                  >
+                                    {badge.label}
+                                  </span>
+                                </div>
+                              )}
 
                               {/* Bottom row */}
                               <div className="flex items-center justify-between">

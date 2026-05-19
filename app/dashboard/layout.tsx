@@ -15,7 +15,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen flex" style={{ background: '#F5F5F5' }}>
+    <div className="dashboard-root min-h-screen flex">
       <DashboardShell>{children}</DashboardShell>
     </div>
   )
