@@ -13,6 +13,7 @@ import {
   Building2,
   Hammer,
   Trash2,
+  RefreshCw,
 } from 'lucide-react'
 
 type NavItem = {
@@ -26,6 +27,7 @@ const mainNav: NavItem[] = [
   { icon: Users2,          label: 'Leads',     href: '/dashboard/leads' },
   { icon: Building2,       label: 'Customers', href: '/dashboard/customers' },
   { icon: Hammer,          label: 'Jobs',      href: '/dashboard/jobs' },
+  { icon: RefreshCw,       label: 'Retainers', href: '/dashboard/retainers' },
   { icon: Briefcase,       label: 'Projects',  href: '/dashboard/projects' },
 ]
 

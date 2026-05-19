@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Search, Hammer, Clock, CheckCircle, UserCircle } from 'lucide-react'
+import Link from 'next/link'
+import { Plus, Search, Hammer, Clock, CheckCircle, UserCircle, RefreshCw } from 'lucide-react'
 import type { Job } from '@/lib/types'
 import { fmtDate } from '@/lib/utils'
 import DeleteButton from '@/components/ui/DeleteButton'
@@ -53,11 +54,15 @@ export default function JobsPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  const active = jobs.filter(
+  // Retainer jobs are managed on the Retainers page, not the pipeline
+  const pipelineJobs   = jobs.filter((j) => j.type !== 'retainer')
+  const retainerCount  = jobs.filter((j) => j.type === 'retainer' && j.status !== 'delivered').length
+
+  const active = pipelineJobs.filter(
     (j) => j.status !== 'delivered' && j.status !== 'on_hold'
   ).length
 
-  const filtered = jobs.filter((j) => {
+  const filtered = pipelineJobs.filter((j) => {
     const q = search.toLowerCase()
     const matchesSearch =
       !search ||
@@ -80,7 +85,7 @@ export default function JobsPage() {
             Jobs
           </p>
           <p className="font-body mt-1" style={{ color: '#6B7280', fontSize: '14px' }}>
-            {active} active · {jobs.length} total
+            {active} active · {pipelineJobs.length} total
           </p>
         </div>
         <button
@@ -92,6 +97,23 @@ export default function JobsPage() {
           New Job
         </button>
       </div>
+
+      {/* Retainer notice */}
+      {retainerCount > 0 && (
+        <Link
+          href="/dashboard/retainers"
+          className="flex items-center justify-between rounded-xl px-4 py-3 mb-4 transition-opacity hover:opacity-80"
+          style={{ background: 'rgba(139,47,201,0.06)', border: '1px solid rgba(139,47,201,0.2)' }}
+        >
+          <div className="flex items-center gap-2">
+            <RefreshCw size={14} style={{ color: '#8B2FC9' }} />
+            <span className="font-body font-medium" style={{ color: '#8B2FC9', fontSize: '13px' }}>
+              {retainerCount} active retainer task{retainerCount !== 1 ? 's' : ''} — managed on the Retainers page
+            </span>
+          </div>
+          <span className="font-body" style={{ color: '#8B2FC9', fontSize: '13px' }}>View →</span>
+        </Link>
+      )}
 
       {/* Stats row */}
       <div className="flex gap-3 flex-wrap mb-6">
@@ -107,7 +129,7 @@ export default function JobsPage() {
             />
             <span className="font-body" style={{ color: '#6B7280', fontSize: '13px' }}>{label}</span>
             <span className="font-heading font-bold" style={{ color: '#0D0D0D', fontSize: '15px' }}>
-              {jobs.filter((j) => j.status === key).length}
+              {pipelineJobs.filter((j) => j.status === key).length}
             </span>
           </div>
         ))}
@@ -173,7 +195,7 @@ export default function JobsPage() {
       )}
 
       {/* No jobs at all */}
-      {!loading && jobs.length === 0 && (
+      {!loading && pipelineJobs.length === 0 && (
         <div className="bg-white rounded-2xl p-12 text-center shadow-sm mb-6" style={{ border: '1px solid #E5E7EB' }}>
           <Hammer size={40} style={{ color: '#9CA3AF', margin: '0 auto' }} />
           <p className="font-body mt-3" style={{ color: '#6B7280', fontSize: '15px' }}>No active jobs</p>
@@ -184,7 +206,7 @@ export default function JobsPage() {
       )}
 
       {/* Filter empty state */}
-      {!loading && jobs.length > 0 && filtered.length === 0 && (
+      {!loading && pipelineJobs.length > 0 && filtered.length === 0 && (
         <div className="bg-white rounded-2xl p-12 text-center shadow-sm" style={{ border: '1px solid #E5E7EB' }}>
           <p className="font-body" style={{ color: '#6B7280', fontSize: '15px' }}>
             No jobs match your search or filters

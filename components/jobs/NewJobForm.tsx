@@ -10,6 +10,7 @@ interface Props {
   customers: Pick<Customer, 'id' | 'business_name' | 'contact_name' | 'email'>[]
   preselectedCustomer?: Customer | null
   preselectedProject?: Project | null
+  initialType?: string
 }
 
 const typeOptions = [
@@ -66,13 +67,13 @@ function initials(name: string): string {
     .join('')
 }
 
-export default function NewJobForm({ customers, preselectedCustomer, preselectedProject }: Props) {
+export default function NewJobForm({ customers, preselectedCustomer, preselectedProject, initialType }: Props) {
   const router = useRouter()
   const [customerId, setCustomerId] = useState(preselectedCustomer?.id ?? '')
   const [projectId]                 = useState(preselectedProject?.id ?? '')
   const [title, setTitle]           = useState('')
   const [description, setDescription] = useState('')
-  const [type, setType]             = useState('website')
+  const [type, setType]             = useState(initialType ?? 'website')
   const [priority, setPriority]     = useState('medium')
   const [assignedTo, setAssignedTo] = useState('')
   const [dueDate, setDueDate]       = useState('')

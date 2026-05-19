@@ -5,15 +5,16 @@ import { Menu, Moon, Sun } from 'lucide-react'
 import { useTheme } from '@/components/providers/ThemeProvider'
 
 const pageTitles: Record<string, string> = {
-  '/dashboard':            'Dashboard',
-  '/dashboard/leads':      'Leads',
-  '/dashboard/customers':  'Customers',
-  '/dashboard/jobs':       'Jobs',
-  '/dashboard/projects':   'Projects',
-  '/dashboard/proposals':  'Proposals',
-  '/dashboard/revenue':    'Revenue',
-  '/dashboard/settings':   'Settings',
-  '/dashboard/trash':      'Trash',
+  '/dashboard':           'Dashboard',
+  '/dashboard/leads':     'Leads',
+  '/dashboard/customers': 'Customers',
+  '/dashboard/jobs':      'Jobs',
+  '/dashboard/retainers': 'Retainers',
+  '/dashboard/projects':  'Projects',
+  '/dashboard/proposals': 'Proposals',
+  '/dashboard/revenue':   'Revenue',
+  '/dashboard/settings':  'Settings',
+  '/dashboard/trash':     'Trash',
 }
 
 function getTitle(pathname: string): string {

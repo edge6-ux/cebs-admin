@@ -5,9 +5,9 @@ import NewJobForm from '@/components/jobs/NewJobForm'
 export default async function NewJobPage({
   searchParams,
 }: {
-  searchParams: Promise<{ customerId?: string; projectId?: string }>
+  searchParams: Promise<{ customerId?: string; projectId?: string; type?: string }>
 }) {
-  const { customerId, projectId } = await searchParams
+  const { customerId, projectId, type } = await searchParams
 
   const [customersResult, customerResult, projectResult] = await Promise.all([
     supabaseAdmin
@@ -27,12 +27,16 @@ export default async function NewJobPage({
   const customer  = customerResult.data  as Customer | null
   const project   = projectResult.data   as Project  | null
 
+  const validTypes = ['website', 'optimization', 'custom_build', 'retainer', 'other']
+  const initialType = type && validTypes.includes(type) ? type : undefined
+
   return (
     <div className="max-w-2xl mx-auto">
       <NewJobForm
         customers={customers}
         preselectedCustomer={customer}
         preselectedProject={project}
+        initialType={initialType}
       />
     </div>
   )
