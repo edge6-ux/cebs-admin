@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Send, CheckCircle, XCircle, ExternalLink } from 'lucide-react'
-import ProposalEmailModal from '@/components/proposals/ProposalEmailModal'
 
 interface Props {
   proposalId: string
@@ -35,7 +34,6 @@ export default function ProposalDetailActions({
 }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState<'accepted' | 'declined' | null>(null)
-  const [showEmailModal, setShowEmailModal] = useState(false)
 
   async function handleUpdate(newStatus: 'accepted' | 'declined') {
     setLoading(newStatus)
@@ -57,7 +55,7 @@ export default function ProposalDetailActions({
       <div className="space-y-2">
         {status === 'draft' && (
           <button
-            onClick={() => setShowEmailModal(true)}
+            onClick={() => router.push(`/dashboard/proposals/${proposalId}/email`)}
             style={{ ...btnBase, background: '#8B2FC9', color: 'white', fontWeight: 500 }}
             onMouseEnter={(e) => { e.currentTarget.style.background = '#7A28B8' }}
             onMouseLeave={(e) => { e.currentTarget.style.background = '#8B2FC9' }}
@@ -114,15 +112,6 @@ export default function ProposalDetailActions({
         </button>
       </div>
 
-      {showEmailModal && (
-        <ProposalEmailModal
-          proposalId={proposalId}
-          customerEmail={customerEmail}
-          customerName={customerName}
-          onClose={() => setShowEmailModal(false)}
-          onSent={() => router.refresh()}
-        />
-      )}
     </>
   )
 }
