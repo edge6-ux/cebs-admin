@@ -19,6 +19,14 @@ export async function PATCH(
     return NextResponse.json({ error: error?.message ?? 'Update failed' }, { status: 500 })
   }
 
+  // Cascade restore: when deleted_at is cleared, bring linked jobs back too
+  if ('deleted_at' in body && body.deleted_at === null) {
+    await supabaseAdmin
+      .from('jobs')
+      .update({ deleted_at: null })
+      .eq('project_id', id)
+  }
+
   return NextResponse.json(data)
 }
 
@@ -38,9 +46,11 @@ export async function DELETE(
     return NextResponse.json({ error: fetchError?.message ?? 'Not found' }, { status: 404 })
   }
 
+  const deletedAt = new Date().toISOString()
+
   const { error } = await supabaseAdmin
     .from('projects')
-    .update({ deleted_at: new Date().toISOString() })
+    .update({ deleted_at: deletedAt })
     .eq('id', id)
 
   if (error) {
@@ -49,8 +59,9 @@ export async function DELETE(
 
   await supabaseAdmin
     .from('jobs')
-    .update({ deleted_at: new Date().toISOString() })
+    .update({ deleted_at: deletedAt })
     .eq('project_id', id)
+    .is('deleted_at', null)
 
   if (project.monthly_retainer > 0 && project.lead_id) {
     await supabaseAdmin
