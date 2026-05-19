@@ -75,9 +75,9 @@ export default function ProposalEmail({
             <Row>
               <Column>
                 <Img
-                  src="https://cebs-admin.vercel.app/images/cebs-logo.png"
+                  src="https://cebs-admin.vercel.app/images/cebslogo6-transparent.png"
                   alt="Competitive Edge Business Solutions"
-                  height="36"
+                  height="40"
                   style={{ display: 'block' }}
                 />
               </Column>
