@@ -208,10 +208,10 @@ export default function ProposalEmail({
               The Competitive Edge Team
             </Text>
             <Link
-              href="https://cuttingedgebs.com"
+              href="https://cebs-one.vercel.app/"
               style={{ fontSize: '13px', color: purple, textDecoration: 'none', fontFamily: "'Inter', sans-serif" }}
             >
-              cuttingedgebs.com
+              cebs-one.vercel.app
             </Link>
           </Section>
 
