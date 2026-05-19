@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Send, RefreshCw, AlertCircle } from 'lucide-react'
 
 interface LineItem {
@@ -108,10 +109,10 @@ export default function ProposalEmailModal({
     }
   }
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 flex items-center justify-center px-4"
-      style={{ background: 'rgba(0,0,0,0.6)', zIndex: 50 }}
+      style={{ background: 'rgba(0,0,0,0.6)', zIndex: 200 }}
       onClick={onClose}
     >
       <div
@@ -294,6 +295,7 @@ export default function ProposalEmailModal({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { AlertTriangle, Download } from 'lucide-react'
 import type { Lead } from '@/lib/types'
 
@@ -606,10 +607,10 @@ export default function SettingsPage() {
       </div>
 
       {/* Confirm modal */}
-      {showClearConfirm && (
+      {showClearConfirm && createPortal(
         <div
           className="fixed inset-0 flex items-center justify-center px-4"
-          style={{ background: 'rgba(0,0,0,0.5)', zIndex: 50 }}
+          style={{ background: 'rgba(0,0,0,0.5)', zIndex: 200 }}
           onClick={() => setShowClearConfirm(false)}
         >
           <div
@@ -647,7 +648,8 @@ export default function SettingsPage() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
