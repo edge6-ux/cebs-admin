@@ -60,6 +60,8 @@ const NIGHT_CSS = `
   }
 
   /* Inner panel sections */
+  [style*="background: #FAFAFA"],
+  [style*="background:#FAFAFA"],
   [style*="background: #F9F9F9"],
   [style*="background:#F9F9F9"],
   [style*="background: rgb(249"] {
