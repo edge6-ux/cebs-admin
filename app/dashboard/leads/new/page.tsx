@@ -12,11 +12,11 @@ const fieldStyle: React.CSSProperties = {
   padding: '12px 16px',
   fontFamily: 'var(--font-inter), sans-serif',
   fontSize: '14px',
-  color: '#0D0D0D',
-  background: 'white',
   outline: 'none',
   transition: 'all 150ms',
 }
+
+const fieldClass = 'bg-white text-[#0D0D0D]'
 
 function Label({ children, required }: { children: string; required?: boolean }) {
   return (
@@ -151,6 +151,7 @@ export default function NewLeadPage() {
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Jane Smith"
                 required
+                className={fieldClass}
                 style={fieldStyle}
                 {...focusHandlers}
               />
@@ -164,6 +165,7 @@ export default function NewLeadPage() {
                 onChange={(e) => setBusinessName(e.target.value)}
                 placeholder="Smith's Auto Repair"
                 required
+                className={fieldClass}
                 style={fieldStyle}
                 {...focusHandlers}
               />
@@ -177,6 +179,7 @@ export default function NewLeadPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="jane@smithsauto.com"
                 required
+                className={fieldClass}
                 style={fieldStyle}
                 {...focusHandlers}
               />
@@ -189,6 +192,7 @@ export default function NewLeadPage() {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="(555) 000-0000"
+                className={fieldClass}
                 style={fieldStyle}
                 {...focusHandlers}
               />
@@ -205,7 +209,7 @@ export default function NewLeadPage() {
           <div className="space-y-4">
             <Field>
               <Label>Industry</Label>
-              <select value={industry} onChange={(e) => setIndustry(e.target.value)} style={fieldStyle} {...focusHandlers}>
+              <select value={industry} onChange={(e) => setIndustry(e.target.value)} className={fieldClass} style={fieldStyle} {...focusHandlers}>
                 <option value="">Select industry</option>
                 <option>Trades &amp; Contractors</option>
                 <option>Restaurants &amp; Hospitality</option>
@@ -220,7 +224,7 @@ export default function NewLeadPage() {
 
             <Field>
               <Label>Monthly Software Spend</Label>
-              <select value={monthlySpend} onChange={(e) => setMonthlySpend(e.target.value)} style={fieldStyle} {...focusHandlers}>
+              <select value={monthlySpend} onChange={(e) => setMonthlySpend(e.target.value)} className={fieldClass} style={fieldStyle} {...focusHandlers}>
                 <option value="">Select range</option>
                 <option>Under $500/month</option>
                 <option>$500–$1,000/month</option>
@@ -239,7 +243,7 @@ export default function NewLeadPage() {
                 onChange={(e) => setChallenge(e.target.value)}
                 placeholder="What pain points did they describe? What are they struggling with right now?"
                 required
-                className="resize-none"
+                className={`${fieldClass} resize-none`}
                 style={fieldStyle}
                 {...focusHandlers}
               />
@@ -253,7 +257,7 @@ export default function NewLeadPage() {
           <div className="space-y-4">
             <Field>
               <Label>Source</Label>
-              <select value={source} onChange={(e) => setSource(e.target.value)} style={fieldStyle} {...focusHandlers}>
+              <select value={source} onChange={(e) => setSource(e.target.value)} className={fieldClass} style={fieldStyle} {...focusHandlers}>
                 <option value="">Select source</option>
                 <option>Referral</option>
                 <option>Cold Outreach</option>
@@ -272,6 +276,7 @@ export default function NewLeadPage() {
                     value={referredBy}
                     onChange={(e) => setReferredBy(e.target.value)}
                     placeholder="Who referred them?"
+                    className={fieldClass}
                     style={fieldStyle}
                     {...focusHandlers}
                   />
@@ -286,6 +291,7 @@ export default function NewLeadPage() {
                 value={assignedTo}
                 onChange={(e) => setAssignedTo(e.target.value)}
                 placeholder="Team member handling this lead"
+                className={fieldClass}
                 style={fieldStyle}
                 {...focusHandlers}
               />
@@ -298,7 +304,7 @@ export default function NewLeadPage() {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Anything else worth noting..."
-                className="resize-none"
+                className={`${fieldClass} resize-none`}
                 style={fieldStyle}
                 {...focusHandlers}
               />
@@ -330,8 +336,8 @@ export default function NewLeadPage() {
           <button
             onClick={() => handleSubmit(false)}
             disabled={saving}
-            className="font-body rounded-xl px-5 py-2.5 transition-colors disabled:opacity-60"
-            style={{ border: '1px solid #E5E7EB', color: '#4A4A4A', fontSize: '14px', background: 'white' }}
+            className="font-body rounded-xl px-5 py-2.5 transition-colors disabled:opacity-60 bg-white text-[#4A4A4A]"
+            style={{ border: '1px solid #E5E7EB', fontSize: '14px' }}
           >
             Save Only
           </button>

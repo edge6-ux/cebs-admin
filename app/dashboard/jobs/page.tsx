@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Plus, Search, Hammer, Clock, CheckCircle, UserCircle, RefreshCw } from 'lucide-react'
+import { Plus, Search, Hammer, Clock, CheckCircle, RefreshCw } from 'lucide-react'
 import type { Job } from '@/lib/types'
 import { fmtDate } from '@/lib/utils'
 import DeleteButton from '@/components/ui/DeleteButton'
@@ -350,7 +350,7 @@ export default function JobsPage() {
                                       if (res.ok) setJobs((prev) => prev.filter((j) => j.id !== job.id))
                                     }}
                                   />
-                                  {job.assigned_to ? (
+                                  {job.assigned_to && (
                                     <div
                                       className="flex items-center justify-center rounded-full flex-shrink-0"
                                       style={{ width: '20px', height: '20px', background: '#0D0D0D' }}
@@ -359,8 +359,6 @@ export default function JobsPage() {
                                         {job.assigned_to[0]?.toUpperCase()}
                                       </span>
                                     </div>
-                                  ) : (
-                                    <UserCircle size={20} style={{ color: '#D1D5DB' }} />
                                   )}
                                 </div>
                               </div>

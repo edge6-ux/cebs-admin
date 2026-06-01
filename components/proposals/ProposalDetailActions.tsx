@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Send, CheckCircle, XCircle, ExternalLink } from 'lucide-react'
+import DeleteButton from '@/components/ui/DeleteButton'
 
 interface Props {
   proposalId: string
@@ -110,6 +111,16 @@ export default function ProposalDetailActions({
           <ExternalLink size={15} style={{ color: '#6B7280' }} />
           View Lead
         </button>
+
+        <div className="pt-1">
+          <DeleteButton
+            label="Delete Proposal"
+            onConfirm={async () => {
+              const res = await fetch(`/api/admin/proposals/${proposalId}`, { method: 'DELETE' })
+              if (res.ok) router.push(`/dashboard/leads/${leadId}`)
+            }}
+          />
+        </div>
       </div>
 
     </>

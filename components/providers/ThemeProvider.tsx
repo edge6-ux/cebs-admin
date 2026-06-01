@@ -43,13 +43,15 @@ const NIGHT_CSS = `
 
   /* Outline / filter buttons (not solid-primary ones which carry text-white) */
   button.rounded-xl:not([class*="text-white"]),
-  button.rounded-lg:not([class*="text-white"]) {
+  button.rounded-lg:not([class*="text-white"]),
+  button.rounded-full:not([class*="text-white"]) {
     background: rgba(255,255,255,0.05) !important;
     border-color: rgba(255,255,255,0.12) !important;
     color: rgba(255,255,255,0.72) !important;
   }
   button.rounded-xl:not([class*="text-white"]):hover,
-  button.rounded-lg:not([class*="text-white"]):hover {
+  button.rounded-lg:not([class*="text-white"]):hover,
+  button.rounded-full:not([class*="text-white"]):hover {
     background: rgba(255,255,255,0.09) !important;
   }
 
@@ -64,8 +66,39 @@ const NIGHT_CSS = `
   [style*="background:#FAFAFA"],
   [style*="background: #F9F9F9"],
   [style*="background:#F9F9F9"],
-  [style*="background: rgb(249"] {
+  [style*="background: rgb(249"],
+  [style*="background: #F5F5F5"],
+  [style*="background:#F5F5F5"] {
     background: rgba(255,255,255,0.04) !important;
+  }
+
+  /* Inline white backgrounds — catches fieldStyle and anything using background: white inline.
+     Class-based .bg-white is handled above; this covers the inline style= equivalent.
+     Browsers normalize the keyword "white" to rgb(255, 255, 255) in the style attribute,
+     so we match both the keyword and the normalized RGB form. */
+  [style*="background: white"],
+  [style*="background:white"],
+  [style*="background: #FFFFFF"],
+  [style*="background:#FFFFFF"],
+  [style*="background: rgb(255, 255, 255)"],
+  [style*="background:rgb(255, 255, 255)"] {
+    background: rgba(255,255,255,0.06) !important;
+  }
+
+  /* Inline dark text — these colors become invisible on dark glass backgrounds.
+     The class rules (.font-body etc.) handle elements that use Tailwind classes;
+     these attribute selectors catch the same colors set via inline style= props. */
+  [style*="color: #0D0D0D"],
+  [style*="color:#0D0D0D"] {
+    color: rgba(255,255,255,0.90) !important;
+  }
+  [style*="color: #4A4A4A"],
+  [style*="color:#4A4A4A"] {
+    color: rgba(255,255,255,0.72) !important;
+  }
+  [style*="color: #6B7280"],
+  [style*="color:#6B7280"] {
+    color: rgba(255,255,255,0.65) !important;
   }
 
   /* Inputs */

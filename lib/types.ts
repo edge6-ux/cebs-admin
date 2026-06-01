@@ -24,6 +24,8 @@ export type Lead = {
   ai_analysis: AIAnalysis | null
   contacted_at: string | null
   last_activity_at: string
+  interested_in?: string
+  interested_category?: string
 }
 
 export type UpsellOpportunity = {
@@ -197,4 +199,55 @@ export type Customer = {
   on_retainer: boolean
   retainer_amount: number
   status: CustomerStatus
+}
+
+export type Questionnaire = {
+  id: string
+  created_at: string
+  updated_at: string
+  lead_id: string
+  years_in_business: string
+  employee_count: string
+  busy_season: string
+  typical_week: string
+  revenue_range: string
+  growth_status: string
+  growth_notes: string
+  customer_journey: string
+  underused_tools: string
+  wishlist: string
+  scheduling_method: string
+  scheduling_notes: string
+  invoicing_method: string
+  invoicing_notes: string
+  post_job_communication: string
+  communication_notes: string
+  lead_sources: string
+  lead_source_notes: string
+  google_presence: string
+  runs_paid_ads: string
+  ad_notes: string
+  review_strategy: string
+  close_rate: string
+  bad_lead_description: string
+  biggest_time_cost: string
+  biggest_worry: string
+  fix_tomorrow: string
+  previous_attempts: string
+  cost_of_inaction: string
+  current_site_issues: string
+  competitor_sites: string
+  pages_needed: string[]
+  has_copy: string
+  has_photos: string
+  reference_sites: string
+  ideal_customer: string
+  brand_words: string
+  success_definition: string
+  timeline: string
+  budget: string
+  decision_makers: string
+  objections: string
+  started_at: string | null
+  completed_at: string | null
 }
