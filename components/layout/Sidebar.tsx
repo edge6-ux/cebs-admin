@@ -71,7 +71,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       <div>
         <div className="flex items-center gap-3 px-5 mb-8">
           <Image
-            src="/images/honedopsnobg.png"
+            src="/images/honed666.png"
             alt="Honed Ops"
             width={48}
             height={16}

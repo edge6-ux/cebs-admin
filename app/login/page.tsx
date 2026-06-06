@@ -45,7 +45,7 @@ export default function LoginPage() {
         {/* Logo + heading */}
         <div className="text-center mb-10">
           <Image
-            src="/images/honedopsnobg.png"
+            src="/images/honed666.png"
             alt="Honed Ops"
             width={160}
             height={64}
