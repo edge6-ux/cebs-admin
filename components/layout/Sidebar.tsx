@@ -73,8 +73,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           <Image
             src="/images/honed666.png"
             alt="Honed Ops"
-            width={48}
-            height={16}
+            width={140}
+            height={44}
             className="object-contain"
             priority
           />
