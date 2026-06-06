@@ -9,11 +9,12 @@ import {
   Img,
   Text,
   Hr,
-  Link,
+  Preview,
 } from '@react-email/components'
 
 interface LineItem {
   name: string
+  description: string
   price: number
   is_retainer: boolean
 }
@@ -21,204 +22,286 @@ interface LineItem {
 interface ProposalEmailProps {
   customerName: string
   businessName: string
-  tier: string
   intro: string
-  nextSteps: string
   lineItems: LineItem[]
   investmentLow: number
   investmentHigh: number
   monthlyRetainer: number
-  timelineWeeks: number | null
-}
-
-const purple = '#8B2FC9'
-const dark = '#0D0D0D'
-const muted = '#6B7280'
-const border = '#E5E7EB'
-const bg = '#F9FAFB'
-
-function formatCurrency(n: number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
+  timelineWeeks: number
+  nextSteps: string
 }
 
 export default function ProposalEmail({
   customerName,
-  businessName,
-  tier,
   intro,
-  nextSteps,
   lineItems,
   investmentLow,
   investmentHigh,
   monthlyRetainer,
   timelineWeeks,
+  nextSteps,
 }: ProposalEmailProps) {
-  const oneTimeItems = lineItems.filter((li) => !li.is_retainer)
-  const retainerItems = lineItems.filter((li) => li.is_retainer)
-  const hasLineItems = lineItems.length > 0
-
   const investmentDisplay =
     investmentLow === investmentHigh
-      ? formatCurrency(investmentLow)
-      : `${formatCurrency(investmentLow)} – ${formatCurrency(investmentHigh)}`
-
-  const tierLabel = tier.charAt(0).toUpperCase() + tier.slice(1)
+      ? `$${investmentLow.toLocaleString()}`
+      : `$${investmentLow.toLocaleString()} – $${investmentHigh.toLocaleString()}`
 
   return (
     <Html lang="en">
       <Head />
-      <Body style={{ backgroundColor: bg, fontFamily: "'Inter', -apple-system, sans-serif", margin: 0, padding: 0 }}>
-        <Container style={{ maxWidth: '600px', margin: '40px auto', backgroundColor: 'white', borderRadius: '16px', overflow: 'hidden', border: `1px solid ${border}` }}>
-
+      <Preview>Your proposal from Honed Ops</Preview>
+      <Body
+        style={{
+          backgroundColor: '#F5F5F5',
+          fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif',
+          margin: '0',
+          padding: '32px 16px',
+        }}
+      >
+        <Container
+          style={{
+            maxWidth: '560px',
+            margin: '0 auto',
+            backgroundColor: '#ffffff',
+            borderRadius: '12px',
+            overflow: 'hidden',
+          }}
+        >
           {/* Header */}
-          <Section style={{ backgroundColor: dark, padding: '28px 40px' }}>
+          <Section style={{ backgroundColor: '#0D0D0D', padding: '0' }}>
             <Row>
-              <Column>
+              <Column style={{ padding: '24px 32px' }}>
                 <Img
-                  src="https://cebs-admin.vercel.app/images/cebslogo6-transparent.png"
-                  alt="Competitive Edge Business Solutions"
-                  height="40"
+                  src="https://honedops.com/honed666.png"
+                  alt="Honed Ops"
+                  width="120"
+                  height="auto"
                   style={{ display: 'block' }}
                 />
-              </Column>
-              <Column align="right">
-                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', margin: 0, fontFamily: "'Inter', sans-serif" }}>
-                  {tierLabel} Proposal
-                </Text>
               </Column>
             </Row>
           </Section>
 
           {/* Purple accent bar */}
-          <Section style={{ backgroundColor: purple, padding: '3px 0' }} />
+          <Section style={{ backgroundColor: '#8B2FC9', padding: '0', height: '4px' }} />
 
           {/* Body */}
-          <Section style={{ padding: '36px 40px 24px' }}>
-            <Text style={{ fontSize: '15px', color: dark, lineHeight: '1.6', margin: '0 0 20px', fontFamily: "'Inter', sans-serif" }}>
-              Hi {customerName},
+          <Section style={{ padding: '36px 36px 28px' }}>
+            <Text
+              style={{
+                fontSize: '20px',
+                fontWeight: '700',
+                color: '#0D0D0D',
+                margin: '0 0 16px',
+              }}
+            >
+              Hi {customerName.split(' ')[0]},
             </Text>
-            <Text style={{ fontSize: '15px', color: '#374151', lineHeight: '1.8', margin: '0 0 28px', fontFamily: "'Inter', sans-serif" }}>
+
+            <Text
+              style={{
+                fontSize: '15px',
+                color: '#4A4A4A',
+                lineHeight: '1.7',
+                margin: '0 0 28px',
+              }}
+            >
               {intro}
             </Text>
-          </Section>
 
-          <Hr style={{ borderColor: border, margin: '0 40px' }} />
-
-          {/* Services / Investment */}
-          <Section style={{ padding: '28px 40px' }}>
-            <Text style={{ fontSize: '11px', color: muted, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 16px', fontFamily: "'Inter', sans-serif" }}>
-              {hasLineItems ? 'Services Proposed' : `${tierLabel} Engagement`}
+            <Text
+              style={{
+                fontSize: '11px',
+                fontWeight: '700',
+                color: '#8B2FC9',
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                margin: '0 0 12px',
+              }}
+            >
+              Scope of Work
             </Text>
 
-            {hasLineItems ? (
-              <>
-                {oneTimeItems.map((item, i) => (
-                  <Row key={i} style={{ marginBottom: '12px' }}>
-                    <Column>
-                      <Text style={{ fontSize: '14px', color: dark, margin: 0, fontFamily: "'Inter', sans-serif", fontWeight: '500' }}>
-                        {item.name}
-                      </Text>
-                    </Column>
-                    <Column align="right">
-                      <Text style={{ fontSize: '14px', color: dark, margin: 0, fontFamily: "'Inter', sans-serif", fontWeight: '600' }}>
-                        {item.price === 0 ? 'Free' : formatCurrency(item.price)}
-                      </Text>
-                    </Column>
-                  </Row>
-                ))}
-
-                {retainerItems.map((item, i) => (
-                  <Row key={i} style={{ marginBottom: '12px' }}>
-                    <Column>
-                      <Text style={{ fontSize: '14px', color: dark, margin: 0, fontFamily: "'Inter', sans-serif", fontWeight: '500' }}>
-                        {item.name}
-                        <span style={{ color: muted, fontWeight: '400' }}> (monthly)</span>
-                      </Text>
-                    </Column>
-                    <Column align="right">
-                      <Text style={{ fontSize: '14px', color: purple, margin: 0, fontFamily: "'Inter', sans-serif", fontWeight: '600' }}>
-                        {formatCurrency(item.price)}/mo
-                      </Text>
-                    </Column>
-                  </Row>
-                ))}
-              </>
-            ) : (
-              <Row style={{ marginBottom: '12px' }}>
+            {lineItems.map((item, i) => (
+              <Row
+                key={i}
+                style={{
+                  borderBottom: '1px solid #F0F0F0',
+                  paddingBottom: '12px',
+                  marginBottom: '12px',
+                }}
+              >
                 <Column>
-                  <Text style={{ fontSize: '14px', color: dark, margin: 0, fontFamily: "'Inter', sans-serif", fontWeight: '500' }}>
-                    {tierLabel} engagement — {businessName}
+                  <Text
+                    style={{
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      color: '#0D0D0D',
+                      margin: '0 0 2px',
+                    }}
+                  >
+                    {item.name}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: '13px',
+                      color: '#6B7280',
+                      margin: '0',
+                      lineHeight: '1.5',
+                    }}
+                  >
+                    {item.description}
                   </Text>
                 </Column>
-                <Column align="right">
-                  <Text style={{ fontSize: '14px', color: dark, margin: 0, fontFamily: "'Inter', sans-serif", fontWeight: '600' }}>
+                <Column
+                  style={{
+                    textAlign: 'right',
+                    whiteSpace: 'nowrap',
+                    paddingLeft: '16px',
+                    verticalAlign: 'top',
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: '14px',
+                      fontWeight: '700',
+                      color: '#8B2FC9',
+                      margin: '0',
+                    }}
+                  >
+                    {item.is_retainer
+                      ? `$${item.price}/mo`
+                      : item.price === 0
+                        ? 'Free'
+                        : `$${item.price.toLocaleString()}`}
+                  </Text>
+                </Column>
+              </Row>
+            ))}
+
+            {/* Investment block */}
+            <Section
+              style={{
+                backgroundColor: '#F9F9F9',
+                borderRadius: '8px',
+                padding: '16px 20px',
+                margin: '20px 0',
+              }}
+            >
+              <Row>
+                <Column>
+                  <Text style={{ fontSize: '13px', color: '#4A4A4A', margin: '0 0 4px' }}>
+                    Total Investment
+                  </Text>
+                </Column>
+                <Column style={{ textAlign: 'right' }}>
+                  <Text
+                    style={{
+                      fontSize: '18px',
+                      fontWeight: '700',
+                      color: '#0D0D0D',
+                      margin: '0',
+                    }}
+                  >
                     {investmentDisplay}
                   </Text>
                 </Column>
               </Row>
-            )}
 
-            {/* Total row */}
-            <Hr style={{ borderColor: border, margin: '16px 0' }} />
-            <Row>
-              <Column>
-                <Text style={{ fontSize: '13px', color: muted, margin: 0, fontFamily: "'Inter', sans-serif" }}>
-                  Total Investment
-                </Text>
-              </Column>
-              <Column align="right">
-                <Text style={{ fontSize: '18px', color: dark, margin: 0, fontFamily: "'Inter', sans-serif", fontWeight: '700' }}>
-                  {investmentLow > 0 ? investmentDisplay : '—'}
-                </Text>
-                {monthlyRetainer > 0 && (
-                  <Text style={{ fontSize: '13px', color: purple, margin: '2px 0 0', fontFamily: "'Inter', sans-serif", fontWeight: '600' }}>
-                    + {formatCurrency(monthlyRetainer)}/mo retainer
-                  </Text>
-                )}
-              </Column>
-            </Row>
+              {monthlyRetainer > 0 && (
+                <Row
+                  style={{
+                    marginTop: '8px',
+                    paddingTop: '8px',
+                    borderTop: '1px solid #E5E7EB',
+                  }}
+                >
+                  <Column>
+                    <Text style={{ fontSize: '13px', color: '#4A4A4A', margin: '0' }}>
+                      Monthly Retainer
+                    </Text>
+                  </Column>
+                  <Column style={{ textAlign: 'right' }}>
+                    <Text
+                      style={{
+                        fontSize: '14px',
+                        fontWeight: '700',
+                        color: '#8B2FC9',
+                        margin: '0',
+                      }}
+                    >
+                      ${monthlyRetainer.toLocaleString()}/mo
+                    </Text>
+                  </Column>
+                </Row>
+              )}
 
-            {timelineWeeks && timelineWeeks > 0 ? (
-              <Text style={{ fontSize: '13px', color: muted, margin: '16px 0 0', fontFamily: "'Inter', sans-serif" }}>
-                Estimated timeline: {timelineWeeks} week{timelineWeeks !== 1 ? 's' : ''}
-              </Text>
-            ) : null}
-          </Section>
+              {timelineWeeks > 0 && (
+                <Row
+                  style={{
+                    marginTop: '8px',
+                    paddingTop: '8px',
+                    borderTop: '1px solid #E5E7EB',
+                  }}
+                >
+                  <Column>
+                    <Text style={{ fontSize: '13px', color: '#4A4A4A', margin: '0' }}>
+                      Estimated Timeline
+                    </Text>
+                  </Column>
+                  <Column style={{ textAlign: 'right' }}>
+                    <Text style={{ fontSize: '13px', color: '#4A4A4A', margin: '0' }}>
+                      {timelineWeeks} weeks
+                    </Text>
+                  </Column>
+                </Row>
+              )}
+            </Section>
 
-          <Hr style={{ borderColor: border, margin: '0 40px' }} />
+            <Hr style={{ borderColor: '#F0F0F0', margin: '24px 0' }} />
 
-          {/* Next steps */}
-          <Section style={{ padding: '28px 40px' }}>
-            <Text style={{ fontSize: '11px', color: muted, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 12px', fontFamily: "'Inter', sans-serif" }}>
-              Next Steps
-            </Text>
-            <Text style={{ fontSize: '15px', color: '#374151', lineHeight: '1.8', margin: 0, fontFamily: "'Inter', sans-serif" }}>
+            <Text
+              style={{
+                fontSize: '14px',
+                color: '#4A4A4A',
+                lineHeight: '1.7',
+                margin: '0 0 24px',
+              }}
+            >
               {nextSteps}
             </Text>
-          </Section>
 
-          <Hr style={{ borderColor: border, margin: '0 40px' }} />
+            <Text
+              style={{
+                fontSize: '14px',
+                fontWeight: '700',
+                color: '#0D0D0D',
+                margin: '0 0 2px',
+              }}
+            >
+              The Honed Ops Team
+            </Text>
+            <Text style={{ fontSize: '13px', color: '#6B7280', margin: '0' }}>
+              contact@honedops.com
+            </Text>
+          </Section>
 
           {/* Footer */}
-          <Section style={{ padding: '24px 40px 32px' }}>
-            <Text style={{ fontSize: '14px', color: '#374151', lineHeight: '1.6', margin: '0 0 16px', fontFamily: "'Inter', sans-serif" }}>
-              Looking forward to working with you,
-            </Text>
-            <Text style={{ fontSize: '14px', color: dark, fontWeight: '600', margin: '0 0 4px', fontFamily: "'Inter', sans-serif" }}>
-              The Competitive Edge Team
-            </Text>
-            <Link
-              href="https://cebs-one.vercel.app/"
-              style={{ fontSize: '13px', color: purple, textDecoration: 'none', fontFamily: "'Inter', sans-serif" }}
+          <Section
+            style={{
+              backgroundColor: '#0D0D0D',
+              padding: '20px 32px',
+              textAlign: 'center',
+            }}
+          >
+            <Text
+              style={{
+                fontSize: '12px',
+                color: 'rgba(255,255,255,0.4)',
+                margin: '0',
+              }}
             >
-              cebs-one.vercel.app
-            </Link>
-          </Section>
-
-          {/* Bottom bar */}
-          <Section style={{ backgroundColor: '#F9F9F9', padding: '14px 40px', borderTop: `1px solid ${border}` }}>
-            <Text style={{ fontSize: '11px', color: '#9CA3AF', margin: 0, fontFamily: "'Inter', sans-serif" }}>
-              Competitive Edge Business Solutions · This proposal is confidential and intended solely for {businessName}.
+              Honed Ops · honedops.com · Operate With An Edge
             </Text>
           </Section>
         </Container>

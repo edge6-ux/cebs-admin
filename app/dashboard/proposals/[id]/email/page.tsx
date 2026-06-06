@@ -16,7 +16,7 @@ export default async function SendProposalEmailPage({
       investment_low, investment_high,
       monthly_retainer, timeline_weeks,
       lead:cebs_leads(full_name, email, business_name),
-      line_items:proposal_line_items(name, price, is_retainer)
+      line_items:proposal_line_items(name, description, price, is_retainer)
     `)
     .eq('id', id)
     .single()
@@ -31,6 +31,7 @@ export default async function SendProposalEmailPage({
 
   const lineItems = (proposal.line_items ?? []) as {
     name: string
+    description: string
     price: number
     is_retainer: boolean
   }[]

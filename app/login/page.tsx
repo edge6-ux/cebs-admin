@@ -45,8 +45,8 @@ export default function LoginPage() {
         {/* Logo + heading */}
         <div className="text-center mb-10">
           <Image
-            src="/images/cebslogo6-transparent.png"
-            alt="Competitive Edge Business Solutions"
+            src="/images/honedopsnobg.png"
+            alt="Honed Ops"
             width={160}
             height={64}
             className="mx-auto object-contain"
@@ -61,7 +61,7 @@ export default function LoginPage() {
               textShadow: '0 0 30px rgba(139,47,201,0.6)',
             }}
           >
-            Competitive Edge Admin
+            Honed Ops
           </p>
           <p
             className="font-body mt-1"

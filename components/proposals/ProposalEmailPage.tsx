@@ -8,6 +8,7 @@ import { formatCurrency } from '@/lib/utils'
 
 interface LineItem {
   name: string
+  description: string
   price: number
   is_retainer: boolean
 }
@@ -100,17 +101,14 @@ export default function ProposalEmailPage({ proposalId, summary }: Props) {
           subject,
           intro,
           nextSteps,
-          customerEmail: summary.customerEmail,
-          customerName:  summary.customerName,
-          proposal: {
-            tier:            summary.tier,
-            lineItems:       summary.lineItems,
-            investmentLow:   summary.investmentLow,
-            investmentHigh:  summary.investmentHigh,
-            monthlyRetainer: summary.monthlyRetainer,
-            timelineWeeks:   summary.timelineWeeks,
-            businessName:    summary.businessName,
-          },
+          customerEmail:   summary.customerEmail,
+          customerName:    summary.customerName,
+          businessName:    summary.businessName,
+          lineItems:       summary.lineItems,
+          investmentLow:   summary.investmentLow,
+          investmentHigh:  summary.investmentHigh,
+          monthlyRetainer: summary.monthlyRetainer,
+          timelineWeeks:   summary.timelineWeeks ?? 0,
         }),
       })
       if (!res.ok) throw new Error('Send failed')
@@ -243,7 +241,7 @@ export default function ProposalEmailPage({ proposalId, summary }: Props) {
                   onBlur={(e)  => { e.currentTarget.style.boxShadow = 'none';               e.currentTarget.style.borderColor = '#E5E7EB' }}
                 />
                 <p className="font-body mt-2" style={{ color: '#9CA3AF', fontSize: '12px' }}>
-                  Line items, pricing, and CEBS branding are added automatically by the email template.
+                  Line items, pricing, and Honed Ops branding are added automatically by the email template.
                 </p>
               </div>
 

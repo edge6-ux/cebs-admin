@@ -6,18 +6,9 @@ import ProposalEmail from '@/components/emails/ProposalEmail'
 
 interface LineItem {
   name: string
+  description: string
   price: number
   is_retainer: boolean
-}
-
-interface ProposalData {
-  tier: string
-  lineItems: LineItem[]
-  investmentLow: number
-  investmentHigh: number
-  monthlyRetainer: number
-  timelineWeeks: number | null
-  businessName: string
 }
 
 export async function POST(
@@ -27,32 +18,41 @@ export async function POST(
   const { id } = await params
   const {
     subject,
-    intro,
-    nextSteps,
     customerEmail,
     customerName,
-    proposal,
+    businessName,
+    intro,
+    nextSteps,
+    lineItems,
+    investmentLow,
+    investmentHigh,
+    monthlyRetainer,
+    timelineWeeks,
   } = await req.json() as {
     subject: string
-    intro: string
-    nextSteps: string
     customerEmail: string
     customerName: string
-    proposal: ProposalData
+    businessName: string
+    intro: string
+    nextSteps: string
+    lineItems: LineItem[]
+    investmentLow: number
+    investmentHigh: number
+    monthlyRetainer: number
+    timelineWeeks: number
   }
 
   const html = await render(
     ProposalEmail({
       customerName,
-      businessName: proposal.businessName,
-      tier: proposal.tier,
+      businessName,
       intro,
       nextSteps,
-      lineItems: proposal.lineItems,
-      investmentLow: proposal.investmentLow,
-      investmentHigh: proposal.investmentHigh,
-      monthlyRetainer: proposal.monthlyRetainer,
-      timelineWeeks: proposal.timelineWeeks,
+      lineItems,
+      investmentLow,
+      investmentHigh,
+      monthlyRetainer,
+      timelineWeeks,
     })
   )
 
@@ -60,7 +60,7 @@ export async function POST(
 
   try {
     await resend.emails.send({
-      from: 'Competitive Edge <onboarding@resend.dev>',
+      from: 'Honed Ops <contact@honedops.com>',
       to: customerEmail,
       subject,
       html,

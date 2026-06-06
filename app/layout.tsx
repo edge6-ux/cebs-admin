@@ -17,8 +17,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "CEBS Admin",
-  description: "Cutting Edge Business Solutions — Internal Operations",
+  title: "Honed Ops",
+  description: "Honed Ops — Internal Operations",
 };
 
 export default function RootLayout({

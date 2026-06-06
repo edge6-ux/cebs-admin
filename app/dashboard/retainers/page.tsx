@@ -11,6 +11,15 @@ type RetainerJob = {
   priority: string
   due_date: string | null
   customer_id: string | null
+  project_id: string | null
+}
+
+type RetainerProject = {
+  id: string
+  business_name: string
+  client_name: string
+  monthly_retainer: number
+  status: string
 }
 
 function getInitials(name: string): string {
@@ -39,7 +48,7 @@ const priorityDot: Record<string, string> = {
 }
 
 export default async function RetainersPage() {
-  const [customersResult, jobsResult] = await Promise.all([
+  const [customersResult, retainerProjectsResult, jobsResult] = await Promise.all([
     supabaseAdmin
       .from('customers')
       .select('*')
@@ -47,8 +56,15 @@ export default async function RetainersPage() {
       .is('deleted_at', null)
       .order('retainer_amount', { ascending: false }),
     supabaseAdmin
+      .from('projects')
+      .select('id, business_name, client_name, monthly_retainer, status')
+      .is('deleted_at', null)
+      .neq('status', 'complete')
+      .gt('monthly_retainer', 0)
+      .order('monthly_retainer', { ascending: false }),
+    supabaseAdmin
       .from('jobs')
-      .select('id, title, status, priority, due_date, customer_id')
+      .select('id, title, status, priority, due_date, customer_id, project_id')
       .eq('type', 'retainer')
       .is('deleted_at', null)
       .neq('status', 'delivered')
@@ -56,6 +72,7 @@ export default async function RetainersPage() {
   ])
 
   const customers = (customersResult.data ?? []) as Customer[]
+  const retainerProjects = (retainerProjectsResult.data ?? []) as RetainerProject[]
   const retainerJobs = (jobsResult.data ?? []) as RetainerJob[]
 
   const jobsByCustomer = retainerJobs.reduce<Record<string, RetainerJob[]>>((acc, job) => {
@@ -66,8 +83,19 @@ export default async function RetainersPage() {
     return acc
   }, {})
 
-  const totalMRR = customers.reduce((sum, c) => sum + (c.retainer_amount || 0), 0)
+  const jobsByProject = retainerJobs.reduce<Record<string, RetainerJob[]>>((acc, job) => {
+    if (job.project_id) {
+      acc[job.project_id] = acc[job.project_id] ?? []
+      acc[job.project_id].push(job)
+    }
+    return acc
+  }, {})
+
+  const totalMRR =
+    customers.reduce((sum, c) => sum + (c.retainer_amount || 0), 0) +
+    retainerProjects.reduce((sum, p) => sum + (p.monthly_retainer || 0), 0)
   const totalActiveTasks = retainerJobs.length
+  const totalRetainers = customers.length + retainerProjects.length
 
   return (
     <div>
@@ -78,7 +106,7 @@ export default async function RetainersPage() {
             Retainers
           </p>
           <p className="font-body mt-1" style={{ color: '#6B7280', fontSize: '14px' }}>
-            {customers.length} client{customers.length !== 1 ? 's' : ''} on retainer
+            {totalRetainers} retainer{totalRetainers !== 1 ? 's' : ''}
             {totalActiveTasks > 0 && ` · ${totalActiveTasks} active task${totalActiveTasks !== 1 ? 's' : ''}`}
           </p>
         </div>
@@ -112,7 +140,7 @@ export default async function RetainersPage() {
       </div>
 
       {/* Empty state */}
-      {customers.length === 0 && (
+      {totalRetainers === 0 && (
         <div
           className="bg-white rounded-2xl p-12 text-center shadow-sm"
           style={{ border: '1px solid #E5E7EB' }}
@@ -134,8 +162,141 @@ export default async function RetainersPage() {
         </div>
       )}
 
-      {/* Client cards */}
+      {/* All retainer cards */}
       <div className="space-y-4">
+        {/* Project-based retainers */}
+        {retainerProjects.map((p) => {
+          const jobs    = jobsByProject[p.id] ?? []
+          const hasJobs = jobs.length > 0
+
+          return (
+            <div
+              key={p.id}
+              className="bg-white rounded-2xl shadow-sm overflow-hidden"
+              style={{ border: '1px solid #E5E7EB' }}
+            >
+              {/* Project header */}
+              <div className="flex items-center justify-between flex-wrap gap-3 px-6 py-5">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="flex-shrink-0 flex items-center justify-center rounded-full"
+                    style={{ width: '40px', height: '40px', background: '#0D0D0D' }}
+                  >
+                    <span className="font-heading font-bold text-white" style={{ fontSize: '14px' }}>
+                      {getInitials(p.business_name)}
+                    </span>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-heading font-bold" style={{ color: '#0D0D0D', fontSize: '16px' }}>
+                        {p.business_name}
+                      </p>
+                      <span
+                        className="inline-block font-body font-semibold px-2 py-0.5 rounded-full"
+                        style={{ fontSize: '11px', background: '#DBEAFE', color: '#1D4ED8' }}
+                      >
+                        Project
+                      </span>
+                    </div>
+                    {p.client_name && p.client_name !== p.business_name && (
+                      <p className="font-body mt-0.5" style={{ color: '#6B7280', fontSize: '13px' }}>
+                        {p.client_name}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <RefreshCw size={13} style={{ color: '#8B2FC9' }} />
+                  <span className="font-heading font-bold" style={{ color: '#8B2FC9', fontSize: '18px' }}>
+                    {formatCurrency(p.monthly_retainer)}
+                    <span className="font-body font-normal" style={{ fontSize: '13px', opacity: 0.7 }}>/mo</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Tasks section */}
+              <div style={{ borderTop: '1px solid #F5F5F5' }}>
+                <div
+                  className="flex items-center justify-between px-6 py-3"
+                  style={{ background: '#FAFAFA' }}
+                >
+                  <p
+                    className="font-body uppercase"
+                    style={{ color: '#9CA3AF', fontSize: '11px', letterSpacing: '0.08em' }}
+                  >
+                    Active Tasks {hasJobs && `(${jobs.length})`}
+                  </p>
+                  <Link
+                    href={`/dashboard/jobs/new?projectId=${p.id}&type=retainer`}
+                    className="flex items-center gap-1 font-body font-medium transition-opacity hover:opacity-70"
+                    style={{ color: '#8B2FC9', fontSize: '13px' }}
+                  >
+                    <Plus size={13} />
+                    New Task
+                  </Link>
+                </div>
+
+                {!hasJobs && (
+                  <div className="px-6 py-5 text-center">
+                    <p className="font-body" style={{ color: '#9CA3AF', fontSize: '13px' }}>
+                      No active tasks — all clear.
+                    </p>
+                  </div>
+                )}
+
+                {hasJobs && (
+                  <div>
+                    {jobs.map((job) => {
+                      const jStatus = jobStatusConfig[job.status] ?? jobStatusConfig.queued
+                      const dot     = priorityDot[job.priority] ?? '#9CA3AF'
+                      const now     = new Date()
+                      const due     = job.due_date ? new Date(job.due_date) : null
+                      const overdue = due ? due < now : false
+
+                      return (
+                        <Link
+                          key={job.id}
+                          href={`/dashboard/jobs/${job.id}`}
+                          className="flex items-center gap-3 px-6 py-3.5 transition-colors hover:bg-[#FAFAFA]"
+                          style={{ borderTop: '1px solid #F5F5F5' }}
+                        >
+                          <div className="flex-shrink-0 rounded-full" style={{ width: '7px', height: '7px', background: dot }} />
+                          <p className="font-body flex-1 truncate" style={{ color: '#0D0D0D', fontSize: '14px' }}>{job.title}</p>
+                          <span className="flex-shrink-0 font-body font-semibold px-2 py-0.5 rounded-full" style={{ fontSize: '11px', background: jStatus.bg, color: jStatus.color }}>
+                            {jStatus.label}
+                          </span>
+                          {due && (
+                            <p className="font-body flex-shrink-0" style={{ fontSize: '12px', color: overdue ? '#E24B4A' : '#9CA3AF', minWidth: '70px', textAlign: 'right' }}>
+                              {overdue ? 'Overdue · ' : ''}{fmtDate(job.due_date!)}
+                            </p>
+                          )}
+                          <ChevronRight size={14} style={{ color: '#D1D5DB', flexShrink: 0 }} />
+                        </Link>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Card footer */}
+              <div
+                className="flex items-center justify-end px-6 py-3"
+                style={{ borderTop: '1px solid #F5F5F5', background: '#FAFAFA' }}
+              >
+                <Link
+                  href={`/dashboard/projects/${p.id}`}
+                  className="font-body font-medium transition-opacity hover:opacity-70"
+                  style={{ color: '#6B7280', fontSize: '13px' }}
+                >
+                  View Project →
+                </Link>
+              </div>
+            </div>
+          )
+        })}
+
+        {/* Customer-based retainers */}
         {customers.map((c) => {
           const badge   = statusConfig[c.status] ?? statusConfig.inactive
           const jobs    = jobsByCustomer[c.id] ?? []

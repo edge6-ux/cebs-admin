@@ -9,12 +9,17 @@ export default async function NewJobPage({
 }) {
   const { customerId, projectId, type } = await searchParams
 
-  const [customersResult, customerResult, projectResult] = await Promise.all([
+  const [customersResult, projectsResult, customerResult, projectResult] = await Promise.all([
     supabaseAdmin
       .from('customers')
       .select('id, business_name, contact_name, email')
       .eq('status', 'active')
       .order('business_name'),
+    supabaseAdmin
+      .from('projects')
+      .select('id, business_name, contract_value, status')
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false }),
     customerId
       ? supabaseAdmin.from('customers').select('*').eq('id', customerId).maybeSingle()
       : Promise.resolve({ data: null, error: null }),
@@ -24,6 +29,7 @@ export default async function NewJobPage({
   ])
 
   const customers = (customersResult.data ?? []) as Pick<Customer, 'id' | 'business_name' | 'contact_name' | 'email'>[]
+  const projects  = (projectsResult.data  ?? []) as Pick<Project, 'id' | 'business_name' | 'contract_value' | 'status'>[]
   const customer  = customerResult.data  as Customer | null
   const project   = projectResult.data   as Project  | null
 
@@ -34,6 +40,7 @@ export default async function NewJobPage({
     <div className="max-w-2xl mx-auto">
       <NewJobForm
         customers={customers}
+        projects={projects}
         preselectedCustomer={customer}
         preselectedProject={project}
         initialType={initialType}

@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
+import Image from 'next/image'
 import {
   LayoutDashboard,
   Users2,
@@ -9,7 +10,6 @@ import {
   BarChart2,
   Settings,
   LogOut,
-  Target,
   Building2,
   Hammer,
   Trash2,
@@ -70,20 +70,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Logo */}
       <div>
         <div className="flex items-center gap-3 px-5 mb-8">
-          <div
-            className="flex-shrink-0 flex items-center justify-center rounded-full"
-            style={{ width: '36px', height: '36px', background: '#8B2FC9' }}
-          >
-            <Target size={18} color="white" />
-          </div>
-          <div>
-            <p className="font-heading font-bold text-white leading-tight" style={{ fontSize: '15px' }}>
-              Competitive Edge
-            </p>
-            <p className="font-body text-white/40" style={{ fontSize: '11px' }}>
-              Admin
-            </p>
-          </div>
+          <Image
+            src="/images/honedopsnobg.png"
+            alt="Honed Ops"
+            width={48}
+            height={16}
+            className="object-contain"
+            priority
+          />
         </div>
 
         {/* Nav */}

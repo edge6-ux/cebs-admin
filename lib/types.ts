@@ -26,6 +26,13 @@ export type Lead = {
   last_activity_at: string
   interested_in?: string
   interested_category?: string
+  website?: string
+  brand_colors?: string[] | null
+  logo_url?: string | null
+  services_offered?: string
+  what_is_working?: string
+  success_definition?: string
+  previous_attempts?: string
 }
 
 export type UpsellOpportunity = {
@@ -199,6 +206,7 @@ export type Customer = {
   on_retainer: boolean
   retainer_amount: number
   status: CustomerStatus
+  logo_url?: string | null
 }
 
 export type Questionnaire = {

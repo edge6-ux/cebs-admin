@@ -52,7 +52,7 @@ export default async function Dashboard() {
     { data: activeProjectsRaw },
     { data: proposalsRaw },
     { data: projectsRevenueRaw },
-    { data: retainerCustomersRaw },
+    { data: retainerProjectsRaw },
   ] = await Promise.all([
     supabaseAdmin.from('cebs_leads').select('*', { count: 'exact', head: true }).is('deleted_at', null),
     supabaseAdmin.from('cebs_leads').select('*', { count: 'exact', head: true }).is('deleted_at', null).gte('created_at', firstOfMonth),
@@ -62,7 +62,7 @@ export default async function Dashboard() {
     supabaseAdmin.from('projects').select('*').in('status', ['kickoff', 'in_progress', 'review']).is('deleted_at', null).order('created_at', { ascending: false }).limit(5),
     supabaseAdmin.from('proposals').select('investment_high').in('status', ['draft', 'sent']).is('deleted_at', null),
     supabaseAdmin.from('projects').select('contract_value').is('deleted_at', null),
-    supabaseAdmin.from('customers').select('retainer_amount').eq('on_retainer', true).is('deleted_at', null),
+    supabaseAdmin.from('projects').select('monthly_retainer').is('deleted_at', null).neq('status', 'complete').gt('monthly_retainer', 0),
   ])
 
   const recentLeads = (recentLeadsRaw ?? []) as Lead[]
@@ -74,10 +74,9 @@ export default async function Dashboard() {
   const confirmedValue = (projectsRevenueRaw ?? []).reduce(
     (sum, p) => sum + ((p as { contract_value: number }).contract_value ?? 0), 0
   )
-  const retainerClients = (retainerCustomersRaw ?? [])
-  const retainerCount = retainerClients.length
-  const totalMRR = retainerClients.reduce(
-    (sum, c) => sum + ((c as { retainer_amount: number }).retainer_amount ?? 0), 0
+  const retainerCount = (retainerProjectsRaw ?? []).length
+  const totalMRR = (retainerProjectsRaw ?? []).reduce(
+    (sum, p) => sum + ((p as { monthly_retainer: number }).monthly_retainer ?? 0), 0
   )
   const conversionRate =
     totalLeads ? Math.round(((convertedLeads ?? 0) / totalLeads) * 100) : null

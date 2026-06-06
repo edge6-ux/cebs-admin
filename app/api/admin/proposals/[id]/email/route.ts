@@ -81,30 +81,28 @@ export async function POST(
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 400,
-        system: `You write proposal email copy for Competitive Edge Business Solutions.
-
-You are given structured proposal data. Your job is to write two short pieces of copy that will be inserted into a branded email template — the template already handles formatting, line items, pricing, and branding.
-
-Rules:
-- intro: 2-3 sentences. Reference the specific business and their situation. No generic openers like "I hope this email finds you well." Direct and confident.
-- next_steps: 1-2 sentences. Tell them what to do next to move forward.
-- subject: clear and specific to their business and engagement.
+        system: `You write concise proposal email content for Honed Ops. You only fill in specific content fields. The email template and structure are handled separately.
 
 Respond with JSON only:
-{"subject": string, "intro": string, "next_steps": string}`,
+{"subject": string, "intro": string, "next_steps": string}
+
+Rules:
+- intro: 1-2 sentences max. Reference the business by name. Reference what was discussed. No fluff.
+- next_steps: 1 sentence. Tell them how to move forward. Direct and simple.
+- subject: clear and specific. Include business name.
+- Never say "I hope this finds you well" or similar.`,
         messages: [
           {
             role: 'user',
-            content: `Business: ${proposal.lead?.business_name ?? 'Client'}
+            content: `Generate content for this proposal email.
+
+Business: ${proposal.lead?.business_name ?? 'Client'}
 Contact: ${proposal.lead?.full_name ?? 'there'}
-Industry: ${proposal.lead?.industry ?? 'Not specified'}
-Tier: ${proposal.tier}
+Services: ${itemsText}
+Timeline: ${proposal.timeline_weeks ?? 'TBD'} weeks
+Total: $${proposal.investment_low}
 
-Services:
-${itemsText}
-
-Total: ${totalRange}
-Timeline: ${proposal.timeline_weeks ?? 'TBD'} weeks`,
+Keep intro to 1-2 sentences. Keep next_steps to 1 sentence.`,
           },
         ],
       }),
@@ -127,20 +125,17 @@ Timeline: ${proposal.timeline_weeks ?? 'TBD'} weeks`,
       nextSteps: parsed.next_steps,
       customerEmail: proposal.lead?.email ?? '',
       customerName: proposal.lead?.full_name ?? '',
-      // Pass proposal data for template rendering
-      proposal: {
-        tier: proposal.tier,
-        lineItems: proposal.line_items.map((li) => ({
-          name: li.name,
-          price: li.price,
-          is_retainer: li.is_retainer,
-        })),
-        investmentLow: proposal.investment_low,
-        investmentHigh: proposal.investment_high,
-        monthlyRetainer: proposal.monthly_retainer,
-        timelineWeeks: proposal.timeline_weeks,
-        businessName: proposal.lead?.business_name ?? '',
-      },
+      businessName: proposal.lead?.business_name ?? '',
+      lineItems: proposal.line_items.map((li) => ({
+        name: li.name,
+        description: li.description || '',
+        price: li.price || 0,
+        is_retainer: li.is_retainer || false,
+      })),
+      investmentLow: proposal.investment_low || 0,
+      investmentHigh: proposal.investment_high || 0,
+      monthlyRetainer: proposal.monthly_retainer || 0,
+      timelineWeeks: proposal.timeline_weeks || 0,
     })
   } catch (err) {
     console.error('Email generation failed:', err)
