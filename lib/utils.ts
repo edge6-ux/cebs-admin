@@ -44,3 +44,14 @@ export function priorityColor(score: number): string {
   if (score >= 50) return '#C8922A'
   return '#6B7280'
 }
+
+export function statusColors(status: string): { bg: string; color: string } {
+  switch (status) {
+    case 'new':      return { bg: '#EDE9FE', color: '#5B21B6' }
+    case 'reviewed': return { bg: '#DBEAFE', color: '#1E40AF' }
+    case 'quoted':   return { bg: '#FEF3C7', color: '#92400E' }
+    case 'won':      return { bg: '#D1FAE5', color: '#065F46' }
+    case 'lost':     return { bg: '#F3F4F6', color: '#6B7280' }
+    default:         return { bg: '#F3F4F6', color: '#6B7280' }
+  }
+}

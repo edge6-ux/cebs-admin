@@ -1,7 +1,6 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
-import Image from 'next/image'
 import {
   LayoutDashboard,
   Users2,
@@ -14,6 +13,8 @@ import {
   Hammer,
   Trash2,
   RefreshCw,
+  Clipboard,
+  ClipboardList,
 } from 'lucide-react'
 
 type NavItem = {
@@ -41,6 +42,11 @@ const systemNav: NavItem[] = [
   { icon: Trash2,   label: 'Trash',    href: '/dashboard/trash' },
 ]
 
+const fieldAssessmentSubNav: NavItem[] = [
+  { icon: Building2,     label: 'Tenants',     href: '/dashboard/products/field-assessment/tenants' },
+  { icon: ClipboardList, label: 'Assessments', href: '/dashboard/products/field-assessment/assessments' },
+]
+
 interface SidebarProps {
   isOpen: boolean
   onClose: () => void
@@ -62,26 +68,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   return (
     <div
-      className={`fixed left-0 top-0 h-screen flex flex-col justify-between py-6 z-50 transition-transform duration-200 ${
+      className={`fixed left-0 top-0 h-screen flex flex-col py-6 z-50 transition-transform duration-200 ${
         isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
       }`}
       style={{ width: '240px', background: '#0D0D0D' }}
     >
-      {/* Logo */}
-      <div>
-        <div className="flex items-center gap-3 px-5 mb-8">
-          <Image
-            src="/images/honed666.png"
-            alt="Honed Ops"
-            width={140}
-            height={44}
-            className="object-contain"
-            priority
-          />
-        </div>
-
-        {/* Nav */}
-        <nav className="px-3 space-y-1 flex-1">
+      {/* Nav */}
+      <div className="flex-1 overflow-y-auto min-h-0">
+        <nav className="px-3 space-y-1">
           <NavGroup items={mainNav} isActive={isActive} onClose={onClose} />
 
           <p
@@ -99,6 +93,50 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             System
           </p>
           <NavGroup items={systemNav} isActive={isActive} onClose={onClose} />
+
+          {/* Products */}
+          <div className="mt-6 pt-6" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+            <p
+              className="font-body uppercase px-4 mb-2"
+              style={{ color: 'rgba(255,255,255,0.3)', fontSize: '10px', letterSpacing: '0.1em' }}
+            >
+              Products
+            </p>
+            <div
+              className="flex items-center gap-2 px-4 py-2 mb-1"
+              style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', fontWeight: 500 }}
+            >
+              <Clipboard size={14} style={{ color: '#6B7280' }} />
+              Field Assessment
+            </div>
+            <div className="pl-8 space-y-0.5">
+              {fieldAssessmentSubNav.map((item) => {
+                const active = isActive(item.href)
+                const Icon = item.icon
+                return (
+                  <button
+                    key={item.href}
+                    onClick={() => { router.push(item.href); onClose() }}
+                    className="w-full flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-150 cursor-pointer"
+                    style={{
+                      fontSize: '13px',
+                      background: active ? 'rgba(255,255,255,0.08)' : 'transparent',
+                      color: active ? 'white' : 'rgba(255,255,255,0.4)',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!active) e.currentTarget.style.color = 'rgba(255,255,255,0.6)'
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!active) e.currentTarget.style.color = 'rgba(255,255,255,0.4)'
+                    }}
+                  >
+                    <Icon size={14} />
+                    {item.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
         </nav>
       </div>
 

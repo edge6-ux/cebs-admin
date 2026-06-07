@@ -15,6 +15,8 @@ const pageTitles: Record<string, string> = {
   '/dashboard/revenue':   'Revenue',
   '/dashboard/settings':  'Settings',
   '/dashboard/trash':     'Trash',
+  '/dashboard/products/field-assessment/tenants':     'Field Assessment — Tenants',
+  '/dashboard/products/field-assessment/assessments': 'Field Assessment — Assessments',
 }
 
 function getTitle(pathname: string): string {
