@@ -10,6 +10,21 @@ type LeadSlim = {
   industry: string
 }
 
+type TenantRetainer = {
+  id: string
+  business_name: string
+  retainer_amount: number
+  billing_cycle: string | null
+  active: boolean
+  primary_color: string
+}
+
+function normalizeToMonthly(amount: number, cycle: string | null): number {
+  if (cycle === 'annual') return amount / 12
+  if (cycle === 'quarterly') return amount / 3
+  return amount
+}
+
 function plural(n: number, word: string) {
   return `${n} ${word}${n !== 1 ? 's' : ''}`
 }
@@ -24,21 +39,35 @@ export default async function RevenuePage() {
     { data: projectsRaw },
     { data: proposalsRaw },
     { data: leadsRaw },
+    { data: tenantsRaw },
   ] = await Promise.all([
     supabaseAdmin.from('projects').select('*').is('deleted_at', null).order('created_at', { ascending: false }),
     supabaseAdmin.from('proposals').select('*').is('deleted_at', null).order('created_at', { ascending: false }),
     supabaseAdmin.from('cebs_leads').select('id, status, created_at, industry').is('deleted_at', null).order('created_at', { ascending: false }),
+    supabaseAdmin
+      .from('tenants')
+      .select('id, business_name, retainer_amount, billing_cycle, active, primary_color')
+      .eq('active', true)
+      .gt('retainer_amount', 0),
   ])
 
   const projects = (projectsRaw ?? []) as Project[]
   const proposals = (proposalsRaw ?? []) as Proposal[]
   const leads = (leadsRaw ?? []) as LeadSlim[]
+  const tenants = (tenantsRaw ?? []) as TenantRetainer[]
 
   const confirmedRevenue = projects.reduce((sum, p) => sum + (p.contract_value || 0), 0)
 
-  const monthlyRecurring = projects
+  const jobRetainerMRR = projects
     .filter((p) => p.status !== 'complete')
     .reduce((sum, p) => sum + (p.monthly_retainer || 0), 0)
+
+  const tenantRetainerMRR = tenants.reduce(
+    (sum, t) => sum + normalizeToMonthly(t.retainer_amount, t.billing_cycle),
+    0
+  )
+
+  const totalMRR = jobRetainerMRR + tenantRetainerMRR
 
   const sentProposals = proposals.filter((p) => p.status === 'sent')
   const pipelineValue = sentProposals.reduce((sum, p) => sum + (p.investment_high || 0), 0)
@@ -54,41 +83,54 @@ export default async function RevenuePage() {
     ? Math.round(confirmedRevenue / projects.length)
     : 0
 
+  const mrrBreakdown =
+    jobRetainerMRR > 0 && tenantRetainerMRR > 0
+      ? `Retainers: ${formatCurrency(jobRetainerMRR)} · Field App: ${formatCurrency(tenantRetainerMRR)}`
+      : tenantRetainerMRR > 0 && jobRetainerMRR === 0
+      ? 'Field App retainers only'
+      : null
+
   const cards = [
     {
       label: 'Confirmed Revenue',
       value: formatCurrency(confirmedRevenue),
       sub: plural(projects.length, 'project'),
+      breakdown: null as string | null,
       accent: '#16A34A',
     },
     {
       label: 'Monthly Recurring',
-      value: formatCurrency(monthlyRecurring),
+      value: formatCurrency(totalMRR),
       sub: 'Active retainers',
+      breakdown: mrrBreakdown,
       accent: '#8B2FC9',
     },
     {
       label: 'Pipeline Value',
       value: formatCurrency(pipelineValue),
       sub: plural(openProposalCount, 'open proposal'),
+      breakdown: null as string | null,
       accent: '#C8922A',
     },
     {
       label: 'Avg Deal Size',
       value: projects.length > 0 ? formatCurrency(avgDealSize) : '—',
       sub: 'Per project',
+      breakdown: null as string | null,
       accent: '#1D4ED8',
     },
     {
       label: 'Conversion Rate',
       value: leads.length > 0 ? `${conversionRate}%` : '—',
       sub: 'Leads to clients',
+      breakdown: null as string | null,
       accent: '#16A34A',
     },
     {
       label: 'Total Leads',
       value: String(leads.length),
       sub: plural(convertedCount, 'converted'),
+      breakdown: null as string | null,
       accent: '#6B7280',
     },
   ]
@@ -125,6 +167,11 @@ export default async function RevenuePage() {
             <p className="font-body mt-2" style={{ color: '#6B7280', fontSize: '13px' }}>
               {card.sub}
             </p>
+            {card.breakdown && (
+              <p className="font-body mt-1" style={{ color: '#9CA3AF', fontSize: '11px' }}>
+                {card.breakdown}
+              </p>
+            )}
           </div>
         ))}
       </div>
@@ -402,7 +449,7 @@ export default async function RevenuePage() {
                   <div className="flex items-center justify-between mt-4 pt-4" style={{ borderTop: '1px solid #F5F5F5' }}>
                     <span className="font-body font-semibold" style={{ color: '#4A4A4A', fontSize: '13px' }}>Total MRR</span>
                     <span className="font-heading font-bold" style={{ color: '#0D0D0D', fontSize: '16px' }}>
-                      {formatCurrency(monthlyRecurring)}/mo
+                      {formatCurrency(totalMRR)}/mo
                     </span>
                   </div>
                 </>
@@ -411,6 +458,109 @@ export default async function RevenuePage() {
           </div>
         </div>
 
+      </div>
+
+      {/* Field App Retainers */}
+      <div className="mt-8">
+        <h2 className="font-heading font-bold mb-4" style={{ color: '#0D0D0D', fontSize: '17px' }}>
+          Field App Retainers
+        </h2>
+
+        {tenants.length === 0 ? (
+          <div className="bg-white rounded-2xl border p-6 shadow-sm" style={{ borderColor: '#E5E7EB' }}>
+            <p className="font-body" style={{ color: '#9CA3AF', fontSize: '14px' }}>
+              No active field app retainers yet.
+            </p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl border overflow-hidden shadow-sm" style={{ borderColor: '#E5E7EB' }}>
+            {/* Header row */}
+            <div
+              className="grid px-5 py-3"
+              style={{
+                background: '#F9F9F9',
+                borderBottom: '1px solid #E5E7EB',
+                gridTemplateColumns: '2fr 1fr 1fr 1fr',
+              }}
+            >
+              {['Tenant', 'Cycle', 'Amount', 'Monthly Value'].map(col => (
+                <span
+                  key={col}
+                  className="font-body font-semibold uppercase"
+                  style={{ color: '#6B7280', fontSize: '11px', letterSpacing: '0.05em' }}
+                >
+                  {col}
+                </span>
+              ))}
+            </div>
+
+            {/* Tenant rows */}
+            {tenants.map((tenant) => {
+              const monthly = normalizeToMonthly(tenant.retainer_amount, tenant.billing_cycle)
+              const cycleLabel =
+                tenant.billing_cycle === 'annual' ? 'yr'
+                : tenant.billing_cycle === 'quarterly' ? 'qtr'
+                : 'mo'
+              return (
+                <div
+                  key={tenant.id}
+                  className="grid px-5 py-4"
+                  style={{
+                    gridTemplateColumns: '2fr 1fr 1fr 1fr',
+                    alignItems: 'center',
+                    borderBottom: '1px solid #F5F5F5',
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="rounded-full flex-shrink-0"
+                      style={{ width: '8px', height: '8px', background: tenant.primary_color }}
+                    />
+                    <span className="font-body font-semibold" style={{ color: '#0D0D0D', fontSize: '14px' }}>
+                      {tenant.business_name}
+                    </span>
+                  </div>
+
+                  <span
+                    className="font-body capitalize"
+                    style={{ color: '#6B7280', fontSize: '13px' }}
+                  >
+                    {tenant.billing_cycle || 'monthly'}
+                  </span>
+
+                  <span className="font-body font-semibold" style={{ color: '#0D0D0D', fontSize: '13px' }}>
+                    {formatCurrency(tenant.retainer_amount)}/{cycleLabel}
+                  </span>
+
+                  <span className="font-body font-semibold" style={{ color: '#8B2FC9', fontSize: '13px' }}>
+                    {formatCurrency(monthly)}/mo
+                  </span>
+                </div>
+              )
+            })}
+
+            {/* Total row */}
+            <div
+              className="grid px-5 py-4"
+              style={{
+                background: '#F9F9F9',
+                borderTop: '1px solid #E5E7EB',
+                gridTemplateColumns: '2fr 1fr 1fr 1fr',
+                alignItems: 'center',
+              }}
+            >
+              <span
+                className="font-heading font-bold"
+                style={{ color: '#0D0D0D', fontSize: '14px', gridColumn: '1 / span 3' }}
+              >
+                Total Field App MRR
+              </span>
+              <span className="font-heading font-bold" style={{ color: '#8B2FC9', fontSize: '16px' }}>
+                {formatCurrency(tenantRetainerMRR)}/mo
+              </span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
