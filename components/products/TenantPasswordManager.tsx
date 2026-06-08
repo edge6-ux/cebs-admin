@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Copy, Eye, EyeOff, Mail } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Copy, Eye, EyeOff, Mail, UserPlus } from 'lucide-react'
 
 interface Props {
   tenantId: string
@@ -42,7 +43,8 @@ const divider: React.CSSProperties = {
   margin: '16px 0',
 }
 
-export default function TenantPasswordManager({ tenantId: _tenantId, adminEmail, authUserId }: Props) {
+export default function TenantPasswordManager({ tenantId, adminEmail, authUserId }: Props) {
+  const router = useRouter()
   const [newPassword, setNewPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [savingPassword, setSavingPassword] = useState(false)
@@ -50,12 +52,15 @@ export default function TenantPasswordManager({ tenantId: _tenantId, adminEmail,
   const [sendingReset, setSendingReset] = useState(false)
   const [sentReset, setSentReset] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showRelink, setShowRelink] = useState(false)
+  const [relinking, setRelinking] = useState(false)
 
   const strength = newPassword.length > 0 ? getStrength(newPassword) : null
 
   async function handlePasswordUpdate() {
     setSavingPassword(true)
     setError(null)
+    setShowRelink(false)
 
     const res = await fetch('/api/admin/products/field-assessment/tenants/password', {
       method: 'POST',
@@ -64,7 +69,9 @@ export default function TenantPasswordManager({ tenantId: _tenantId, adminEmail,
     })
 
     if (!res.ok) {
-      setError('Failed to update password. Try again.')
+      const body = await res.json() as { error?: string }
+      setError(body.error ?? 'Failed to update password.')
+      setShowRelink(true)
       setSavingPassword(false)
       return
     }
@@ -73,6 +80,27 @@ export default function TenantPasswordManager({ tenantId: _tenantId, adminEmail,
     setSavedPassword(true)
     setSavingPassword(false)
     setTimeout(() => setSavedPassword(false), 3000)
+  }
+
+  async function handleRelink() {
+    setRelinking(true)
+    setError(null)
+
+    const res = await fetch('/api/admin/products/field-assessment/tenants/relink-auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tenantId, adminEmail, newPassword }),
+    })
+
+    const body = await res.json() as { error?: string }
+
+    if (!res.ok) {
+      setError(body.error ?? 'Failed to re-create account.')
+      setRelinking(false)
+      return
+    }
+
+    router.refresh()
   }
 
   async function handleSendReset() {
@@ -86,7 +114,8 @@ export default function TenantPasswordManager({ tenantId: _tenantId, adminEmail,
     })
 
     if (!res.ok) {
-      setError('Failed to send reset email. Try again.')
+      const body = await res.json() as { error?: string }
+      setError(body.error ?? 'Failed to send reset email.')
       setSendingReset(false)
       return
     }
@@ -283,11 +312,49 @@ export default function TenantPasswordManager({ tenantId: _tenantId, adminEmail,
                   color: '#E24B4A',
                   fontSize: '12px',
                   marginTop: '8px',
-                  textAlign: 'center',
                 }}
               >
                 {error}
               </p>
+            )}
+
+            {/* Re-create auth account — shown after a failed password update */}
+            {showRelink && (
+              <div
+                className="rounded-xl p-3 mt-3"
+                style={{ background: '#FEF3C7', border: '1px solid #FDE68A' }}
+              >
+                <p
+                  style={{
+                    fontFamily: 'Inter, sans-serif',
+                    color: '#92400E',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    marginBottom: '8px',
+                  }}
+                >
+                  Auth account may be missing. Re-create it using the password entered above.
+                </p>
+                <button
+                  onClick={handleRelink}
+                  disabled={newPassword.length < 6 || relinking}
+                  className="flex items-center gap-2"
+                  style={{
+                    background: newPassword.length < 6 || relinking ? '#E5E7EB' : '#0D0D0D',
+                    color: newPassword.length < 6 || relinking ? '#9CA3AF' : 'white',
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    padding: '8px 14px',
+                    borderRadius: '10px',
+                    border: 'none',
+                    cursor: newPassword.length < 6 || relinking ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  <UserPlus size={13} />
+                  {relinking ? 'Re-creating...' : 'Re-create Account'}
+                </button>
+              </div>
             )}
           </div>
 
