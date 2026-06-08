@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
     notification_email,
     admin_email,
     admin_password,
+    customer_id,
   } = await req.json()
 
   const { data: existing } = await supabaseAdmin
@@ -67,6 +68,7 @@ export async function POST(req: NextRequest) {
       admin_email,
       auth_user_id: authUser.user.id,
       active: true,
+      customer_id: customer_id ?? null,
     })
     .select()
     .single()

@@ -12,6 +12,12 @@ interface TenantSubmissionCount {
   count: number
 }
 
+interface CustomerOption {
+  id: string
+  business_name: string
+  contact_name: string
+}
+
 interface Tenant {
   id: string
   slug: string
@@ -64,6 +70,7 @@ export default function TenantsPage() {
   const [tenants, setTenants] = useState<Tenant[]>([])
   const [deleted, setDeleted] = useState<Tenant[]>([])
   const [loading, setLoading] = useState(true)
+  const [customers, setCustomers] = useState<CustomerOption[]>([])
   const [showNewForm, setShowNewForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -77,13 +84,17 @@ export default function TenantsPage() {
   const [adminPassword, setAdminPassword] = useState('')
   const [primaryColor, setPrimaryColor] = useState('#1C3A2B')
   const [logoUrl, setLogoUrl] = useState('')
+  const [customerId, setCustomerId] = useState('')
 
   useEffect(() => {
-    fetch('/api/admin/products/field-assessment/tenants')
-      .then(res => res.json())
-      .then(data => {
-        setTenants(data.tenants ?? [])
-        setDeleted(data.deleted ?? [])
+    Promise.all([
+      fetch('/api/admin/products/field-assessment/tenants').then(r => r.json()),
+      fetch('/api/admin/customers').then(r => r.json()),
+    ])
+      .then(([tenantsData, customersData]) => {
+        setTenants(tenantsData.tenants ?? [])
+        setDeleted(tenantsData.deleted ?? [])
+        setCustomers(customersData ?? [])
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -131,6 +142,7 @@ export default function TenantsPage() {
     setAdminPassword('')
     setPrimaryColor('#1C3A2B')
     setLogoUrl('')
+    setCustomerId('')
     setError(null)
   }
 
@@ -157,6 +169,7 @@ export default function TenantsPage() {
           notification_email: notificationEmail,
           admin_email: adminEmail,
           admin_password: adminPassword,
+          customer_id: customerId || null,
         }),
       })
 
@@ -769,6 +782,24 @@ export default function TenantsPage() {
                   placeholder="https://example.com/logo.png"
                   style={inputStyle}
                 />
+              </div>
+
+              {/* Customer Link */}
+              <div style={{ paddingTop: '4px', borderTop: '1px solid #F5F5F5' }}>
+                <label style={labelStyle}>Link to Customer Record</label>
+                <p style={helperStyle}>Optional — link to an existing customer profile</p>
+                <select
+                  value={customerId}
+                  onChange={(e) => setCustomerId(e.target.value)}
+                  style={{ ...inputStyle, appearance: 'auto', color: customerId ? '#0D0D0D' : '#9CA3AF' }}
+                >
+                  <option value="">— No customer linked —</option>
+                  {customers.map(c => (
+                    <option key={c.id} value={c.id}>
+                      {c.business_name}{c.contact_name ? ` — ${c.contact_name}` : ''}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {error && (
