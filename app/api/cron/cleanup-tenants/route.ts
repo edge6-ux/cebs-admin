@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
   const { data: expiredTenants } = await supabaseAdmin
     .from('tenants')
-    .select('id, auth_user_id, business_name')
+    .select('id, business_name')
     .not('deleted_at', 'is', null)
     .lt('deleted_at', thirtyDaysAgo)
 
@@ -22,14 +22,10 @@ export async function GET(req: NextRequest) {
 
   const results: { id: string; business_name: string; status: 'deleted' | 'failed'; error?: string }[] = []
 
-  for (const tenant of expiredTenants) {
+  for (const tenant of expiredTenants as { id: string; business_name: string }[]) {
     try {
       await supabaseAdmin.from('field_submissions').delete().eq('tenant_id', tenant.id)
       await supabaseAdmin.from('tenants').delete().eq('id', tenant.id)
-
-      if (tenant.auth_user_id) {
-        await supabaseAdmin.auth.admin.deleteUser(tenant.auth_user_id)
-      }
 
       results.push({ id: tenant.id, business_name: tenant.business_name, status: 'deleted' })
     } catch (err) {

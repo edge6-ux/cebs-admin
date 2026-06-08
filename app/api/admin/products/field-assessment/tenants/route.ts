@@ -36,6 +36,7 @@ export async function POST(req: NextRequest) {
     .from('tenants')
     .select('id')
     .eq('slug', slug)
+    .is('deleted_at', null)
     .maybeSingle()
 
   if (existing) {
