@@ -48,6 +48,31 @@ export async function GET(
   })
 }
 
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
+
+  try {
+    const { data: tenant, error } = await supabaseAdmin
+      .from('tenants')
+      .update({
+        deleted_at: new Date().toISOString(),
+        active: false,
+      })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return NextResponse.json({ success: true, deleted_at: tenant.deleted_at })
+  } catch {
+    return NextResponse.json({ error: 'Failed to delete tenant' }, { status: 500 })
+  }
+}
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }

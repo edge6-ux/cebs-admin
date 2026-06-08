@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Building2, Mail, Tag, ClipboardList, Copy } from 'lucide-react'
+import { Plus, Building2, Mail, Tag, ClipboardList, Copy, Trash2, RefreshCw } from 'lucide-react'
 import { fmtDate } from '@/lib/utils'
 
 const FIELD_APP_URL =
@@ -24,6 +24,7 @@ interface Tenant {
   admin_email: string
   auth_user_id: string
   active: boolean
+  deleted_at: string | null
   created_at: string
   updated_at: string
   submissions: TenantSubmissionCount[]
@@ -61,6 +62,7 @@ const inputStyle: React.CSSProperties = {
 export default function TenantsPage() {
   const router = useRouter()
   const [tenants, setTenants] = useState<Tenant[]>([])
+  const [deleted, setDeleted] = useState<Tenant[]>([])
   const [loading, setLoading] = useState(true)
   const [showNewForm, setShowNewForm] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -80,11 +82,25 @@ export default function TenantsPage() {
     fetch('/api/admin/products/field-assessment/tenants')
       .then(res => res.json())
       .then(data => {
-        setTenants(data)
+        setTenants(data.tenants ?? [])
+        setDeleted(data.deleted ?? [])
         setLoading(false)
       })
       .catch(() => setLoading(false))
   }, [])
+
+  async function handleRestore(id: string) {
+    const res = await fetch(`/api/admin/products/field-assessment/tenants/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deleted_at: null, active: true }),
+    })
+    if (res.ok) {
+      const restored = await res.json() as Tenant
+      setDeleted(prev => prev.filter(t => t.id !== id))
+      setTenants(prev => [{ ...restored, submissions: [] }, ...prev])
+    }
+  }
 
   async function handleToggleActive(tenant: Tenant) {
     const res = await fetch(`/api/admin/products/field-assessment/tenants/${tenant.id}`, {
@@ -453,6 +469,144 @@ export default function TenantsPage() {
               </div>
             )
           })}
+        </div>
+      )}
+
+      {/* Recently Deleted */}
+      {deleted.length > 0 && (
+        <div className="mt-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Trash2 size={16} style={{ color: '#9CA3AF' }} />
+            <h2
+              style={{
+                fontFamily: 'Space Grotesk, sans-serif',
+                color: '#0D0D0D',
+                fontWeight: 700,
+                fontSize: '17px',
+              }}
+            >
+              Recently Deleted
+            </h2>
+            <span
+              className="px-2.5 py-1 rounded-full"
+              style={{
+                background: '#F3F4F6',
+                color: '#6B7280',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '12px',
+                fontWeight: 700,
+              }}
+            >
+              {deleted.length}
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            {deleted.map(tenant => {
+              const daysLeft = 30 - Math.floor(
+                (Date.now() - new Date(tenant.deleted_at!).getTime()) / (1000 * 60 * 60 * 24)
+              )
+              return (
+                <div
+                  key={tenant.id}
+                  className="rounded-2xl p-5"
+                  style={{
+                    background: '#F9F9F9',
+                    border: '1px solid #E5E7EB',
+                    opacity: 0.7,
+                  }}
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p
+                        style={{
+                          fontFamily: 'Inter, sans-serif',
+                          color: '#4A4A4A',
+                          fontSize: '15px',
+                          fontWeight: 600,
+                          marginBottom: '4px',
+                        }}
+                      >
+                        {tenant.business_name}
+                      </p>
+                      <p
+                        style={{
+                          fontFamily: 'monospace',
+                          color: '#9CA3AF',
+                          fontSize: '12px',
+                        }}
+                      >
+                        /{tenant.slug}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <span
+                        className="px-2.5 py-1 rounded-full"
+                        style={{
+                          background: '#FCEBEB',
+                          color: '#E24B4A',
+                          fontFamily: 'Inter, sans-serif',
+                          fontSize: '11px',
+                          fontWeight: 600,
+                        }}
+                      >
+                        Deleted
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: 'Inter, sans-serif',
+                          color: '#9CA3AF',
+                          fontSize: '11px',
+                          marginTop: '4px',
+                        }}
+                      >
+                        {daysLeft} day{daysLeft !== 1 ? 's' : ''} until permanent deletion
+                      </span>
+                    </div>
+                  </div>
+
+                  <div
+                    className="flex items-center justify-between mt-3 pt-3"
+                    style={{ borderTop: '1px solid #E5E7EB' }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: 'Inter, sans-serif',
+                        color: '#9CA3AF',
+                        fontSize: '12px',
+                      }}
+                    >
+                      Deleted {fmtDate(tenant.deleted_at!)}
+                    </span>
+                    <button
+                      onClick={() => handleRestore(tenant.id)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
+                      style={{
+                        background: 'white',
+                        border: '1px solid #E5E7EB',
+                        color: '#4A4A4A',
+                        fontFamily: 'Inter, sans-serif',
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        transition: 'all 150ms',
+                      }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.borderColor = '#8B2FC9'
+                        e.currentTarget.style.color = '#8B2FC9'
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.borderColor = '#E5E7EB'
+                        e.currentTarget.style.color = '#4A4A4A'
+                      }}
+                    >
+                      <RefreshCw size={12} />
+                      Restore
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
 

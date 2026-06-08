@@ -9,6 +9,7 @@ import TenantConfiguration from '@/components/products/TenantConfiguration'
 import TenantCustomerLink from '@/components/products/TenantCustomerLink'
 import TenantPipelineStats from '@/components/products/TenantPipelineStats'
 import TenantPasswordManager from '@/components/products/TenantPasswordManager'
+import TenantDangerZone from '@/components/products/TenantDangerZone'
 
 const FIELD_APP_URL =
   process.env.NEXT_PUBLIC_FIELD_APP_URL ?? 'https://treeservice-fieldapp.vercel.app'
@@ -587,6 +588,8 @@ export default async function TenantDetailPage({ params }: PageProps) {
           </div>
         </div>
       </div>
+
+      <TenantDangerZone tenant={{ id: tenant.id, business_name: tenant.business_name }} />
     </div>
   )
 }

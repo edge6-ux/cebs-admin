@@ -2,16 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
 
 export async function GET() {
-  const { data, error } = await supabaseAdmin
-    .from('tenants')
-    .select(`
-      *,
-      submissions:field_submissions(count)
-    `)
-    .order('created_at', { ascending: false })
+  const [{ data: tenantsData, error }, { data: deletedData }] = await Promise.all([
+    supabaseAdmin
+      .from('tenants')
+      .select(`*, submissions:field_submissions(count)`)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false }),
+    supabaseAdmin
+      .from('tenants')
+      .select('*')
+      .not('deleted_at', 'is', null)
+      .order('deleted_at', { ascending: false }),
+  ])
 
-  if (error) return NextResponse.json([])
-  return NextResponse.json(data ?? [])
+  if (error) return NextResponse.json({ tenants: [], deleted: [] })
+  return NextResponse.json({ tenants: tenantsData ?? [], deleted: deletedData ?? [] })
 }
 
 export async function POST(req: NextRequest) {
