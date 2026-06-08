@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Plus, Building2, Mail, Tag, ClipboardList, Copy } from 'lucide-react'
 import { fmtDate } from '@/lib/utils'
 
@@ -58,6 +59,7 @@ const inputStyle: React.CSSProperties = {
 }
 
 export default function TenantsPage() {
+  const router = useRouter()
   const [tenants, setTenants] = useState<Tenant[]>([])
   const [loading, setLoading] = useState(true)
   const [showNewForm, setShowNewForm] = useState(false)
@@ -298,7 +300,10 @@ export default function TenantsPage() {
               <div
                 key={tenant.id}
                 className="rounded-2xl p-5 shadow-sm"
-                style={{ background: 'white', border: '1px solid #E5E7EB' }}
+                style={{ background: 'white', border: '1px solid #E5E7EB', cursor: 'pointer' }}
+                onClick={() =>
+                  router.push(`/dashboard/products/field-assessment/tenants/${tenant.id}`)
+                }
               >
                 {/* Top row */}
                 <div className="flex items-start justify-between mb-4">
@@ -335,7 +340,7 @@ export default function TenantsPage() {
                     </div>
                   </div>
                   <button
-                    onClick={() => handleToggleActive(tenant)}
+                    onClick={e => { e.stopPropagation(); handleToggleActive(tenant) }}
                     className="cursor-pointer px-2.5 py-1 rounded-full"
                     style={{
                       fontFamily: 'Inter, sans-serif',
@@ -402,7 +407,7 @@ export default function TenantsPage() {
                   </span>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => handleCopyLink(tenant)}
+                      onClick={e => { e.stopPropagation(); handleCopyLink(tenant) }}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
                       style={{
                         fontFamily: 'Inter, sans-serif',
@@ -432,6 +437,7 @@ export default function TenantsPage() {
                       href={`${FIELD_APP_URL}/${tenant.slug}/admin`}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={e => e.stopPropagation()}
                       style={{
                         fontFamily: 'Inter, sans-serif',
                         color: '#8B2FC9',

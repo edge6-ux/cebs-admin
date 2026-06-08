@@ -1,25 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params
-
-  const { data, error } = await supabaseAdmin
-    .from('tenants')
-    .select('*')
-    .eq('id', id)
-    .single()
-
-  if (error || !data) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  }
-
-  return NextResponse.json(data)
-}
-
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -27,12 +8,15 @@ export async function PATCH(
   const { id } = await params
   const body = await req.json()
 
+  const allowed = ['status', 'notes', 'contacted_at', 'contact_method'] as const
+  const update: Record<string, unknown> = {}
+  for (const key of allowed) {
+    if (key in body) update[key] = body[key]
+  }
+
   const { data, error } = await supabaseAdmin
-    .from('tenants')
-    .update({
-      ...body,
-      updated_at: new Date().toISOString(),
-    })
+    .from('field_submissions')
+    .update(update)
     .eq('id', id)
     .select()
     .single()
