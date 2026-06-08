@@ -53,6 +53,8 @@ function UrgencyBadge({ urgency }: { urgency: string | undefined }) {
           fontFamily: 'Inter, sans-serif',
           fontSize: '11px',
           fontWeight: 600,
+          display: 'inline-block',
+          width: 'fit-content',
         }}
       >
         Emergency
@@ -69,6 +71,8 @@ function UrgencyBadge({ urgency }: { urgency: string | undefined }) {
           fontFamily: 'Inter, sans-serif',
           fontSize: '11px',
           fontWeight: 600,
+          display: 'inline-block',
+          width: 'fit-content',
         }}
       >
         This week
@@ -404,6 +408,7 @@ export default function AssessmentsPage() {
                       fontFamily: 'Inter, sans-serif',
                       fontSize: '11px',
                       fontWeight: 600,
+                      width: 'fit-content',
                     }}
                   >
                     {s.status}
