@@ -7,17 +7,45 @@ export async function GET(
 ) {
   const { id } = await params
 
-  const { data, error } = await supabaseAdmin
+  const { data: tenant, error } = await supabaseAdmin
     .from('tenants')
     .select('*')
     .eq('id', id)
     .single()
 
-  if (error || !data) {
+  if (error || !tenant) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  return NextResponse.json(data)
+  const [
+    { count: totalCount },
+    { count: newCount },
+    { count: contactedCount },
+  ] = await Promise.all([
+    supabaseAdmin
+      .from('field_submissions')
+      .select('id', { count: 'exact', head: true })
+      .eq('tenant_id', id),
+    supabaseAdmin
+      .from('field_submissions')
+      .select('id', { count: 'exact', head: true })
+      .eq('tenant_id', id)
+      .eq('status', 'new'),
+    supabaseAdmin
+      .from('field_submissions')
+      .select('id', { count: 'exact', head: true })
+      .eq('tenant_id', id)
+      .eq('status', 'contacted'),
+  ])
+
+  return NextResponse.json({
+    ...tenant,
+    pipeline: {
+      total: totalCount ?? 0,
+      new: newCount ?? 0,
+      contacted: contactedCount ?? 0,
+    },
+  })
 }
 
 export async function PATCH(

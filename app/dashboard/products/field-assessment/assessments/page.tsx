@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Search, ClipboardList } from 'lucide-react'
-import { timeAgo, statusColors } from '@/lib/utils'
+import { Search, ClipboardList, AlertCircle, Phone, Mail } from 'lucide-react'
+import { timeAgo, statusColors, fmtDate } from '@/lib/utils'
 
 interface TenantInfo {
   id: string
@@ -19,6 +19,8 @@ interface Submission {
   property_address: string
   status: string
   created_at: string
+  contacted_at: string | null
+  contact_method: 'phone' | 'email' | null
   form_data: { service_type?: string; urgency?: string } | null
   tenant: TenantInfo
 }
@@ -150,6 +152,26 @@ export default function AssessmentsPage() {
         </p>
       </div>
 
+      {/* New leads alert */}
+      {(() => {
+        const newLeadsCount = submissions.filter(s => s.status === 'new').length
+        if (newLeadsCount === 0) return null
+        return (
+          <div
+            className="flex items-center gap-3 rounded-xl px-4 py-3 mb-4"
+            style={{ background: '#FCEBEB', border: '1px solid #FECACA' }}
+          >
+            <AlertCircle size={18} style={{ color: '#E24B4A', flexShrink: 0 }} />
+            <span
+              style={{ fontFamily: 'Inter, sans-serif', color: '#991B1B', fontSize: '14px', fontWeight: 500 }}
+            >
+              {newLeadsCount} new lead{newLeadsCount !== 1 ? 's' : ''} across all tenants{' '}
+              {newLeadsCount !== 1 ? 'need' : 'needs'} to be contacted
+            </span>
+          </div>
+        )
+      })()}
+
       {/* Stats Row */}
       <div className="flex gap-3 mb-6 flex-wrap">
         {STAT_DOTS.map(({ status, dot, label }) => (
@@ -279,10 +301,10 @@ export default function AssessmentsPage() {
               style={{
                 background: '#F9F9F9',
                 borderBottom: '1px solid #E5E7EB',
-                gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr 1fr',
+                gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr 1fr 1fr',
               }}
             >
-              {['Customer', 'Tenant', 'Service', 'Urgency', 'Status', 'Date'].map(col => (
+              {['Customer', 'Tenant', 'Service', 'Urgency', 'Status', 'Contacted', 'Date'].map(col => (
                 <span
                   key={col}
                   style={{
@@ -312,7 +334,7 @@ export default function AssessmentsPage() {
                   className="grid px-5 py-4 hover:bg-[#FAFAFA] transition-colors"
                   style={{
                     borderBottom: '1px solid #F5F5F5',
-                    gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr 1fr',
+                    gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr 1fr 1fr',
                     alignItems: 'center',
                   }}
                 >
@@ -386,6 +408,24 @@ export default function AssessmentsPage() {
                   >
                     {s.status}
                   </span>
+
+                  {/* Contacted */}
+                  {s.status === 'contacted' && s.contacted_at ? (
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                      {s.contact_method === 'phone' ? (
+                        <Phone size={12} style={{ color: '#16A34A' }} />
+                      ) : (
+                        <Mail size={12} style={{ color: '#16A34A' }} />
+                      )}
+                      <span style={{ fontFamily: 'Inter, sans-serif', color: '#16A34A', fontSize: '12px' }}>
+                        {fmtDate(s.contacted_at)}
+                      </span>
+                    </div>
+                  ) : (
+                    <span style={{ fontFamily: 'Inter, sans-serif', color: '#E24B4A', fontSize: '12px', fontWeight: 500 }}>
+                      Not yet
+                    </span>
+                  )}
 
                   <span
                     style={{

@@ -2,11 +2,13 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft, ExternalLink, LayoutDashboard, ClipboardList } from 'lucide-react'
 import { supabaseAdmin } from '@/lib/supabase-server'
-import { formatCurrency, fmtDate, timeAgo, statusColors } from '@/lib/utils'
+import { formatCurrency, timeAgo, statusColors } from '@/lib/utils'
 import TenantActiveToggle from '@/components/products/TenantActiveToggle'
 import TenantCopyLinkButton from '@/components/products/TenantCopyLinkButton'
 import TenantConfiguration from '@/components/products/TenantConfiguration'
 import TenantCustomerLink from '@/components/products/TenantCustomerLink'
+import TenantPipelineStats from '@/components/products/TenantPipelineStats'
+import TenantPasswordManager from '@/components/products/TenantPasswordManager'
 
 const FIELD_APP_URL =
   process.env.NEXT_PUBLIC_FIELD_APP_URL ?? 'https://treeservice-fieldapp.vercel.app'
@@ -61,19 +63,30 @@ interface PageProps {
 export default async function TenantDetailPage({ params }: PageProps) {
   const { id } = await params
 
-  const [tenantResult, submissionsResult, countResult] = await Promise.all([
-    supabaseAdmin.from('tenants').select('*').eq('id', id).single(),
-    supabaseAdmin
-      .from('field_submissions')
-      .select('*')
-      .eq('tenant_id', id)
-      .order('created_at', { ascending: false })
-      .limit(10),
-    supabaseAdmin
-      .from('field_submissions')
-      .select('id', { count: 'exact', head: true })
-      .eq('tenant_id', id),
-  ])
+  const [tenantResult, submissionsResult, totalResult, newResult, contactedResult] =
+    await Promise.all([
+      supabaseAdmin.from('tenants').select('*').eq('id', id).single(),
+      supabaseAdmin
+        .from('field_submissions')
+        .select('*')
+        .eq('tenant_id', id)
+        .order('created_at', { ascending: false })
+        .limit(10),
+      supabaseAdmin
+        .from('field_submissions')
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', id),
+      supabaseAdmin
+        .from('field_submissions')
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', id)
+        .eq('status', 'new'),
+      supabaseAdmin
+        .from('field_submissions')
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', id)
+        .eq('status', 'contacted'),
+    ])
 
   if (tenantResult.error || !tenantResult.data) {
     redirect('/dashboard/products/field-assessment/tenants')
@@ -81,7 +94,11 @@ export default async function TenantDetailPage({ params }: PageProps) {
 
   const tenant = tenantResult.data as Tenant
   const submissions = (submissionsResult.data ?? []) as FieldSubmission[]
-  const submissionCount = countResult.count ?? 0
+  const pipeline = {
+    total: totalResult.count ?? 0,
+    new: newResult.count ?? 0,
+    contacted: contactedResult.count ?? 0,
+  }
 
   const [customerResult, allCustomersResult] = await Promise.all([
     tenant.customer_id
@@ -246,25 +263,20 @@ export default async function TenantDetailPage({ params }: PageProps) {
           style={{ borderTop: '1px solid #F5F5F5' }}
         >
           {[
-            { label: 'Total Assessments', value: String(submissionCount) },
-            { label: 'This Month', value: String(thisMonthCount) },
+            { label: 'Total Assessments', value: String(pipeline.total), color: '#0D0D0D' },
+            { label: 'This Month', value: String(thisMonthCount), color: '#0D0D0D' },
             {
-              label: 'Monthly Retainer',
-              value:
-                tenant.retainer_amount != null && tenant.retainer_amount > 0
-                  ? `${formatCurrency(tenant.retainer_amount)}/mo`
-                  : '—',
+              label: 'New Leads',
+              value: String(pipeline.new),
+              color: pipeline.new > 0 ? '#E24B4A' : '#0D0D0D',
             },
-            {
-              label: 'Next Billing',
-              value: tenant.next_billing_date ? fmtDate(tenant.next_billing_date) : '—',
-            },
-          ].map(({ label, value }) => (
+            { label: 'Contacted', value: String(pipeline.contacted), color: '#16A34A' },
+          ].map(({ label, value, color }) => (
             <div key={label} className="flex flex-col">
               <span
                 style={{
                   fontFamily: 'Space Grotesk, sans-serif',
-                  color: '#0D0D0D',
+                  color,
                   fontWeight: 700,
                   fontSize: '22px',
                 }}
@@ -469,6 +481,14 @@ export default async function TenantDetailPage({ params }: PageProps) {
             tenant={{ id: tenant.id, customer_id: tenant.customer_id }}
             customer={customer}
             customers={allCustomers}
+          />
+
+          <TenantPipelineStats pipeline={pipeline} />
+
+          <TenantPasswordManager
+            tenantId={tenant.id}
+            adminEmail={tenant.admin_email}
+            authUserId={tenant.auth_user_id}
           />
 
           {/* Billing / Stripe */}
