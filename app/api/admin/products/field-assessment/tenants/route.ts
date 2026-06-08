@@ -47,6 +47,7 @@ export async function POST(req: NextRequest) {
     email: admin_email,
     password: admin_password,
     email_confirm: true,
+    user_metadata: { role: 'tenant_operator' },
   })
 
   if (authError) {

@@ -68,7 +68,10 @@ export async function DELETE(
     if (error) throw error
 
     if (tenant.auth_user_id) {
-      await supabaseAdmin.auth.admin.deleteUser(tenant.auth_user_id)
+      const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(tenant.auth_user_id)
+      if (user?.user_metadata?.role === 'tenant_operator') {
+        await supabaseAdmin.auth.admin.deleteUser(tenant.auth_user_id)
+      }
     }
 
     return NextResponse.json({ success: true, deleted_at: tenant.deleted_at })
