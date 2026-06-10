@@ -2,12 +2,9 @@
 
 import { useState } from 'react'
 import { Copy, ExternalLink, ChevronDown, ChevronUp, Check } from 'lucide-react'
+import { useTenantBranding } from './TenantBrandingContext'
 
 interface Props {
-  tenant: {
-    primary_color: string
-    cta_text: string | null
-  }
   assessmentUrl: string
 }
 
@@ -82,13 +79,14 @@ const subLabel: React.CSSProperties = {
   marginBottom: '8px',
 }
 
-export default function TenantShareSection({ tenant, assessmentUrl }: Props) {
+export default function TenantShareSection({ assessmentUrl }: Props) {
+  const { primaryColor, ctaText: rawCtaText } = useTenantBranding()
   const [copiedLink, setCopiedLink] = useState(false)
   const [copiedEmbed, setCopiedEmbed] = useState(false)
   const [openPlatform, setOpenPlatform] = useState<string | null>(null)
 
-  const ctaText = tenant.cta_text || 'Get a Free Estimate'
-  const embedCode = `<a href="${assessmentUrl}" style="display:inline-block;background-color:${tenant.primary_color};color:#ffffff;font-family:sans-serif;font-size:16px;font-weight:600;padding:14px 28px;border-radius:8px;text-decoration:none;">${ctaText}</a>`
+  const ctaText = rawCtaText || 'Get a Free Estimate'
+  const embedCode = `<a href="${assessmentUrl}" style="display:inline-block;background-color:${primaryColor};color:#ffffff;font-family:sans-serif;font-size:16px;font-weight:600;padding:14px 28px;border-radius:8px;text-decoration:none;">${ctaText}</a>`
 
   function copyLink() {
     navigator.clipboard.writeText(assessmentUrl)
@@ -169,7 +167,7 @@ export default function TenantShareSection({ tenant, assessmentUrl }: Props) {
             rel="noopener noreferrer"
             style={{
               display: 'inline-block',
-              backgroundColor: tenant.primary_color,
+              backgroundColor: primaryColor,
               color: '#ffffff',
               fontFamily: 'sans-serif',
               fontSize: '16px',

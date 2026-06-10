@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTenantBranding } from './TenantBrandingContext'
 
 interface TenantConfigProps {
   id: string
@@ -52,6 +53,7 @@ const sectionLabel: React.CSSProperties = {
 }
 
 export default function TenantConfiguration({ tenant }: Props) {
+  const { setPrimaryColor: setContextColor, setCtaText: setContextCtaText } = useTenantBranding()
   const [businessName, setBusinessName] = useState(tenant.business_name)
   const [primaryColor, setPrimaryColor] = useState(tenant.primary_color)
   const [logoUrl, setLogoUrl] = useState(tenant.logo_url ?? '')
@@ -117,7 +119,7 @@ export default function TenantConfiguration({ tenant }: Props) {
             <input
               type="color"
               value={primaryColor}
-              onChange={e => setPrimaryColor(e.target.value)}
+              onChange={e => { setPrimaryColor(e.target.value); setContextColor(e.target.value) }}
               style={{
                 width: '48px',
                 height: '40px',
@@ -130,7 +132,7 @@ export default function TenantConfiguration({ tenant }: Props) {
             />
             <input
               value={primaryColor}
-              onChange={e => setPrimaryColor(e.target.value)}
+              onChange={e => { setPrimaryColor(e.target.value); setContextColor(e.target.value) }}
               style={{ ...inputStyle, flex: 1 }}
             />
           </div>
@@ -168,7 +170,7 @@ export default function TenantConfiguration({ tenant }: Props) {
           <label style={labelStyle}>Button Text</label>
           <input
             value={ctaText}
-            onChange={e => setCtaText(e.target.value)}
+            onChange={e => { setCtaText(e.target.value); setContextCtaText(e.target.value) }}
             placeholder="Get a Free Estimate"
             style={inputStyle}
           />

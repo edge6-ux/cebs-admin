@@ -11,6 +11,7 @@ import TenantPipelineStats from '@/components/products/TenantPipelineStats'
 import TenantPasswordManager from '@/components/products/TenantPasswordManager'
 import TenantDangerZone from '@/components/products/TenantDangerZone'
 import TenantShareSection from '@/components/products/TenantShareSection'
+import { TenantBrandingProvider } from '@/components/products/TenantBrandingContext'
 
 const FIELD_APP_URL =
   process.env.NEXT_PUBLIC_FIELD_APP_URL ?? 'https://treeservice-fieldapp.vercel.app'
@@ -350,13 +351,14 @@ export default async function TenantDetailPage({ params }: PageProps) {
       </div>
 
       {/* Two column layout */}
+      <TenantBrandingProvider
+        initialColor={tenant.primary_color}
+        initialCtaText={tenant.cta_text ?? ''}
+      >
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
         {/* Left — Share Section + Recent Assessments */}
         <div>
-          <TenantShareSection
-            tenant={{ primary_color: tenant.primary_color, cta_text: tenant.cta_text }}
-            assessmentUrl={assessmentUrl}
-          />
+          <TenantShareSection assessmentUrl={assessmentUrl} />
 
           <div
             className="rounded-2xl border p-6 shadow-sm"
@@ -595,6 +597,7 @@ export default async function TenantDetailPage({ params }: PageProps) {
           </div>
         </div>
       </div>
+      </TenantBrandingProvider>
 
       <TenantDangerZone tenant={{ id: tenant.id, business_name: tenant.business_name }} />
     </div>
