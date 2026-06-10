@@ -51,8 +51,35 @@ export async function POST(req: NextRequest) {
     user_metadata: { role: 'tenant_operator' },
   })
 
+  let authUserId: string
+
   if (authError) {
-    return NextResponse.json({ error: authError.message }, { status: 500 })
+    // If the email already exists in Auth, reuse that account across tenants
+    const isAlreadyExists =
+      authError.message.toLowerCase().includes('already') || authError.status === 422
+
+    if (!isAlreadyExists) {
+      return NextResponse.json({ error: authError.message }, { status: 500 })
+    }
+
+    const { data: existing } = await supabaseAdmin
+      .from('tenants')
+      .select('auth_user_id')
+      .eq('admin_email', admin_email)
+      .not('auth_user_id', 'is', null)
+      .limit(1)
+      .maybeSingle()
+
+    if (!existing?.auth_user_id) {
+      return NextResponse.json(
+        { error: 'That email is registered in Auth but not linked to any tenant. Contact support.' },
+        { status: 409 }
+      )
+    }
+
+    authUserId = existing.auth_user_id
+  } else {
+    authUserId = authUser.user.id
   }
 
   const { data: tenant, error: insertError } = await supabaseAdmin
@@ -66,7 +93,7 @@ export async function POST(req: NextRequest) {
       logo_url: logo_url || '',
       notification_email,
       admin_email,
-      auth_user_id: authUser.user.id,
+      auth_user_id: authUserId,
       active: true,
       customer_id: customer_id ?? null,
     })

@@ -173,20 +173,19 @@ export default function TenantsPage() {
         }),
       })
 
-      if (res.status === 409) {
-        setError('That slug is already taken.')
+      if (!res.ok) {
+        const body = await res.json() as { error?: string }
+        setError(body.error ?? 'Failed to create tenant. Try again.')
         setSaving(false)
         return
       }
-
-      if (!res.ok) throw new Error('Failed')
 
       const newTenant = await res.json()
       setTenants(prev => [newTenant, ...prev])
       setShowNewForm(false)
       resetForm()
     } catch {
-      setError('Failed to create tenant. Try again.')
+      setError('Something went wrong. Check your connection and try again.')
       setSaving(false)
     }
   }
