@@ -8,6 +8,7 @@ interface TenantConfigProps {
   primary_color: string
   logo_url: string | null
   notification_email: string
+  cta_text: string | null
   retainer_amount: number | null
   billing_cycle: string | null
   next_billing_date: string | null
@@ -55,6 +56,7 @@ export default function TenantConfiguration({ tenant }: Props) {
   const [primaryColor, setPrimaryColor] = useState(tenant.primary_color)
   const [logoUrl, setLogoUrl] = useState(tenant.logo_url ?? '')
   const [notificationEmail, setNotificationEmail] = useState(tenant.notification_email)
+  const [ctaText, setCtaText] = useState(tenant.cta_text ?? '')
   const [retainerAmount, setRetainerAmount] = useState(tenant.retainer_amount ?? 0)
   const [billingCycle, setBillingCycle] = useState(tenant.billing_cycle ?? 'monthly')
   const [nextBillingDate, setNextBillingDate] = useState(tenant.next_billing_date ?? '')
@@ -75,6 +77,7 @@ export default function TenantConfiguration({ tenant }: Props) {
           primary_color: primaryColor,
           logo_url: logoUrl || null,
           notification_email: notificationEmail,
+          cta_text: ctaText || null,
           retainer_amount: retainerAmount,
           billing_cycle: billingCycle,
           next_billing_date: nextBillingDate || null,
@@ -159,6 +162,26 @@ export default function TenantConfiguration({ tenant }: Props) {
             onChange={e => setNotificationEmail(e.target.value)}
             style={inputStyle}
           />
+        </div>
+
+        <div>
+          <label style={labelStyle}>Button Text</label>
+          <input
+            value={ctaText}
+            onChange={e => setCtaText(e.target.value)}
+            placeholder="Get a Free Estimate"
+            style={inputStyle}
+          />
+          <p
+            style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '12px',
+              color: '#9CA3AF',
+              marginTop: '4px',
+            }}
+          >
+            The call to action text on their website button
+          </p>
         </div>
 
         <div>

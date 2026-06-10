@@ -10,6 +10,7 @@ import TenantCustomerLink from '@/components/products/TenantCustomerLink'
 import TenantPipelineStats from '@/components/products/TenantPipelineStats'
 import TenantPasswordManager from '@/components/products/TenantPasswordManager'
 import TenantDangerZone from '@/components/products/TenantDangerZone'
+import TenantShareSection from '@/components/products/TenantShareSection'
 
 const FIELD_APP_URL =
   process.env.NEXT_PUBLIC_FIELD_APP_URL ?? 'https://treeservice-fieldapp.vercel.app'
@@ -30,6 +31,7 @@ interface Tenant {
   retainer_amount: number | null
   billing_cycle: string | null
   next_billing_date: string | null
+  cta_text: string | null
   notes: string | null
   stripe_customer_id: string | null
   stripe_subscription_id: string | null
@@ -349,8 +351,13 @@ export default async function TenantDetailPage({ params }: PageProps) {
 
       {/* Two column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
-        {/* Left — Recent Assessments */}
+        {/* Left — Share Section + Recent Assessments */}
         <div>
+          <TenantShareSection
+            tenant={{ primary_color: tenant.primary_color, cta_text: tenant.cta_text }}
+            assessmentUrl={assessmentUrl}
+          />
+
           <div
             className="rounded-2xl border p-6 shadow-sm"
             style={{ background: 'white', borderColor: '#E5E7EB' }}
