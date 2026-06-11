@@ -69,7 +69,10 @@ export async function DELETE(
 
     if (tenant.auth_user_id) {
       const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(tenant.auth_user_id)
-      if (user?.user_metadata?.role === 'tenant_operator') {
+      const role = user?.user_metadata?.role
+      // Delete if tenant_operator, or if no role (accounts created before role tagging was added).
+      // Accounts with any other role (e.g. future customer accounts) are left untouched.
+      if (role === 'tenant_operator' || !role) {
         await supabaseAdmin.auth.admin.deleteUser(tenant.auth_user_id)
       }
     }
